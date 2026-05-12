@@ -106,30 +106,29 @@
           @click="showMenuDropdown = false"
         >
           <div class="px-4 py-3 border-b border-theme-border mb-1" @click.stop>
-            <template v-if="showAuthEntry">
-              <div class="text-xs font-semibold text-theme-text-secondary mb-2 uppercase tracking-wider">选择服务</div>
-              <select
-                :value="chatStore.useCustomModel ? 'custom' : 'builtin'"
-                @change.stop="handleServiceSelect($event)"
-                class="w-full px-3 py-2 text-sm border border-theme-border rounded-xl select-field focus:ring-2 focus:ring-[var(--theme-primary)] focus:border-[var(--theme-primary)] mb-3"
-              >
-                <option value="custom">自定义模型</option>
+            <div class="text-xs font-semibold text-theme-text-secondary mb-2 uppercase tracking-wider">选择服务</div>
+            <select
+              :value="getCurrentServiceValue()"
+              @change.stop="handleServiceSelectNew($event)"
+              class="w-full px-3 py-2 text-sm border border-theme-border rounded-xl select-field focus:ring-2 focus:ring-[var(--theme-primary)] focus:border-[var(--theme-primary)] mb-3"
+            >
+              <template v-if="showAuthEntry">
                 <option value="builtin">内置模型服务</option>
-              </select>
-            </template>
+              </template>
+              <option v-for="config in modelConfigStore.configs" :key="config.id" :value="`config:${config.id}`">
+                {{ config.name || config.default_model || '未命名配置' }}{{ config.is_default ? ' (默认)' : '' }}
+              </option>
+            </select>
 
-            <div class="text-xs font-semibold text-theme-text-secondary mb-2 uppercase tracking-wider">选择模型</div>
             <template v-if="chatStore.useCustomModel || !showAuthEntry">
-              <select
-                :value="chatStore.customModelConfig?.default_model || ''"
-                @change.stop="updateCustomModelConfig('default_model', ($event.target as HTMLSelectElement).value)"
-                class="w-full px-3 py-2 text-sm border border-theme-border rounded-xl select-field focus:ring-2 focus:ring-[var(--theme-primary)] focus:border-[var(--theme-primary)]"
-              >
-                <option value="">选择模型</option>
-                <option v-for="model in availableCustomModels" :key="model" :value="model">
-                  {{ model }}
-                </option>
-              </select>
+              <div class="text-xs font-semibold text-theme-text-secondary mb-2 uppercase tracking-wider">选择模型</div>
+              <SearchableSelect
+                v-if="modelConfigStore.activeConfig"
+                v-model="modelConfigStore.activeConfig.default_model"
+                :options="getCustomModelOptions"
+                placeholder="搜索或选择模型..."
+                :disabled="!modelConfigStore.activeConfig"
+              />
               <button
                 @click.stop="showCustomModelConfig = true; showMenuDropdown = false"
                 class="w-full mt-2 px-3 py-2 text-sm bg-[var(--theme-primary)]/10 text-[var(--theme-primary)] rounded-xl hover:bg-[var(--theme-primary)]/20 transition-all flex items-center justify-center gap-1"
@@ -138,7 +137,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                 </svg>
-                配置自定义模型
+                管理配置
               </button>
             </template>
             <template v-else>
@@ -171,15 +170,11 @@
                 </div>
               </template>
               <template v-else>
-                <select
-                  :value="chatStore.selectedModel"
-                  @change.stop="chatStore.setSelectedModel(($event.target as HTMLSelectElement).value)"
-                  class="w-full px-3 py-2 text-sm border border-theme-border rounded-xl select-field focus:ring-2 focus:ring-[var(--theme-primary)] focus:border-[var(--theme-primary)]"
-                >
-                  <option v-for="model in chatStore.uniqueModels" :key="model.id" :value="model.id">
-                    {{ model.name }}{{ model.is_default ? ' (默认)' : '' }}
-                  </option>
-                </select>
+                <SearchableSelect
+                  v-model="chatStore.selectedModel"
+                  :options="getBuiltinModelOptions"
+                  placeholder="搜索或选择模型..."
+                />
               </template>
             </template>
           </div>
@@ -487,6 +482,7 @@
 
     <CustomModelConfigModal
       v-model:visible="showCustomModelConfig"
+      v-model:selected-config-id="selectedConfigId"
       :use-custom-model="chatStore.useCustomModel"
       :config="chatStore.customModelConfig"
       :available-models="availableCustomModels"
@@ -494,7 +490,7 @@
       :fetch-models-error="fetchModelsError"
       @toggle-use-custom-model="chatStore.setUseCustomModel(!chatStore.useCustomModel)"
       @update-config="updateCustomModelConfig"
-      @fetch-models="fetchCustomModels"
+      @fetch-models="(configId) => fetchCustomModels(configId)"
     />
 
     <LoginModal
@@ -551,6 +547,7 @@ import ChatSyncModal from './components/ChatSyncModal.vue'
 import FriendSelector from '@/components/FriendSelector.vue'
 import LoginModal from '@/components/LoginModal.vue'
 import AvatarImage from '@/components/AvatarImage.vue'
+import SearchableSelect from '@/components/SearchableSelect.vue'
 
 import { useCharacter } from '@/composables/useCharacter'
 import { useCustomModel } from '@/composables/useCustomModel'
@@ -787,11 +784,44 @@ const {
   availableCustomModels,
   fetchModelsError,
   isLoadingBuiltinModels,
+  pendingSwitchToBuiltin,
   fetchCustomModels,
   updateCustomModelConfig,
-  handleServiceSelect,
-  loadCustomModelsFromStorage
+  loadCustomModelsFromStorage,
+  modelConfigStore,
+  setActiveConfig,
+  updateConfig,
+  switchToBuiltinModel
 } = useCustomModel()
+
+// 更新当前激活配置的单个字段
+function updateConfigField(field: string, value: any) {
+  if (modelConfigStore.activeConfigId) {
+    updateConfig(modelConfigStore.activeConfigId, { [field]: value })
+  }
+}
+
+// 配置弹窗中当前选中的配置 ID
+const selectedConfigId = ref<string | null>(null)
+
+// 内置模型选项
+const getBuiltinModelOptions = computed(() => {
+  const models = chatStore.uniqueModels
+  return models.map(model => ({
+    id: model.id,
+    value: model.id,
+    label: `${model.name}${model.is_default ? ' (默认)' : ''}`
+  }))
+})
+
+// 自定义模型选项
+const getCustomModelOptions = computed(() => {
+  const models = availableCustomModels.value
+  return models.map((model: string) => ({
+    value: model,
+    label: model
+  }))
+})
 
 const messages = computed(() => chatStore.displayedMessages)
 
@@ -814,6 +844,47 @@ function showToast(message: string, type: 'success' | 'error' = 'success') {
 function toggleAutoSuggestions() {
   autoFetchSuggestions.value = !autoFetchSuggestions.value
   localStorage.setItem('role_play_auto_suggestions', autoFetchSuggestions.value.toString())
+}
+
+// 获取当前选择的服务值
+function getCurrentServiceValue() {
+  if (!chatStore.useCustomModel && showAuthEntry) {
+    return 'builtin'
+  }
+  if (modelConfigStore.activeConfigId) {
+    return `config:${modelConfigStore.activeConfigId}`
+  }
+  // 如果还没有激活的配置，但有配置，选第一个
+  if (modelConfigStore.configs.length > 0) {
+    return `config:${modelConfigStore.configs[0].id}`
+  }
+  return 'builtin'
+}
+
+// 处理服务选择
+async function handleServiceSelectNew(event: Event) {
+  const target = event.target as HTMLSelectElement
+  const value = target.value
+  
+  if (value === 'builtin') {
+    if (!userStore.isLoggedIn()) {
+      // 需要登录
+      pendingSwitchToBuiltin.value = true
+      userStore.requireLogin()
+      target.value = getCurrentServiceValue()
+      return
+    }
+    // 切换到内置模型
+    await switchToBuiltinModel()
+  } else if (value.startsWith('config:')) {
+    // 切换到自定义配置
+    const configId = value.replace('config:', '')
+    const config = modelConfigStore.configs.find(c => c.id === configId)
+    if (config) {
+      setActiveConfig(configId)
+      chatStore.setUseCustomModel(true)
+    }
+  }
 }
 
 function handleLoadMore() {

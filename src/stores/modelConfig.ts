@@ -7,7 +7,7 @@ import type { ModelInfo } from '@/utils/llmClient'
 export interface ModelConfig {
   id: string
   name: string
-  provider: 'openai' | 'anthropic' | 'openai-compatible' | 'kobold'
+  provider: 'openai' | 'anthropic' | 'kobold'
   api_url: string
   api_key: string
   default_model: string
