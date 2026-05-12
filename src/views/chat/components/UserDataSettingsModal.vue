@@ -1,5 +1,5 @@
 <template>
-  <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" @click.self="$emit('update:visible', false)">
+  <div v-if="visible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" @click.self="$emit('update:visible', false)" @touchmove.stop>
     <div class="chat-card rounded-2xl w-full max-w-4xl overflow-hidden flex flex-col shadow-2xl border border-theme-border" style="max-height: min(90vh, calc(var(--vh, 1vh) * 90));">
       <div class="p-4 sm:p-6 border-b border-theme-border flex items-center justify-between bg-gradient-to-r from-[var(--theme-gradient-start)]/10 to-[var(--theme-gradient-end)]/10 flex-shrink-0">
         <div class="flex items-center gap-3">
@@ -50,7 +50,7 @@
         </div>
       </div>
 
-      <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 overscroll-contain">
         <div v-if="activeTab === 'presets'">
           <div class="flex justify-between items-center mb-4">
             <p class="text-sm text-theme-text-secondary">预设会在每次对话时插入到系统提示词中</p>
@@ -87,7 +87,7 @@
             <p class="text-sm text-theme-text-secondary">点击"新建"开始创建</p>
           </div>
 
-          <draggable v-else v-model="presetsList" item-key="id" class="space-y-3" ghost-class="opacity-50" animation="200" handle=".drag-handle">
+          <draggable v-else v-model="presetsList" item-key="id" class="space-y-3" ghost-class="opacity-50" animation="200" handle=".drag-handle" :delay="200">
             <template #item="{ element, index }">
               <div class="bg-[var(--theme-card-hover)] border border-theme-border rounded-xl p-4">
                 <div class="flex items-start gap-3">
@@ -151,7 +151,7 @@
             <p class="text-sm text-theme-text-secondary">点击"新建"开始创建</p>
           </div>
 
-          <draggable v-else v-model="worldInfoList" item-key="id" class="space-y-3" ghost-class="opacity-50" animation="200" handle=".drag-handle">
+          <draggable v-else v-model="worldInfoList" item-key="id" class="space-y-3" ghost-class="opacity-50" animation="200" handle=".drag-handle" :delay="200">
             <template #item="{ element, index }">
               <div class="bg-[var(--theme-card-hover)] border border-theme-border rounded-xl p-4">
                 <div class="flex items-start gap-3">
@@ -216,7 +216,7 @@
             <p class="text-sm text-theme-text-secondary">点击"新建"开始创建</p>
           </div>
 
-          <draggable v-else v-model="regexList" item-key="id" class="space-y-3" ghost-class="opacity-50" animation="200" handle=".drag-handle">
+          <draggable v-else v-model="regexList" item-key="id" class="space-y-3" ghost-class="opacity-50" animation="200" handle=".drag-handle" :delay="200">
             <template #item="{ element, index }">
               <div class="bg-[var(--theme-card-hover)] border border-theme-border rounded-xl p-4">
                 <div class="flex items-start gap-3">
