@@ -152,6 +152,7 @@ export const useChatStore = defineStore('chat', () => {
   const isUpdatingSharedCharactersList = ref(false)
   const error = ref<string | null>(null)
   const streamingContent = ref('')
+  const wasManuallyStopped = ref(false)
   const currentWaitTime = ref('0.0')
   const userStore = useUserStore()
   const userName = computed(() => userStore.effectiveUserName)
@@ -866,6 +867,10 @@ const globalDefaultModel = ref('')
       const newMap = new Map(backgroundStreams.value)
       newMap.delete(characterId)
       backgroundStreams.value = newMap
+      // 定时取消停止标记，这样 watcher 有足够时间检测到这个状态
+      setTimeout(() => {
+        wasManuallyStopped.value = false
+      }, 1000)
     }
   }
 
@@ -1039,6 +1044,7 @@ const globalDefaultModel = ref('')
 
     const ctx = backgroundStreams.value.get(targetId)
     if (ctx) {
+      wasManuallyStopped.value = true
       ctx.abortController.abort()
     }
 
@@ -1215,6 +1221,7 @@ const globalDefaultModel = ref('')
     setCurrentCharacter,
     messages,
     isLoading,
+    wasManuallyStopped,
     // 分页相关
     PAGE_SIZE,
     displayOffset,

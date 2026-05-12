@@ -266,6 +266,8 @@ export function useChat(globalRegex: any[] = []) {
     if (previousIsStreaming && !isStreaming && autoFetchSuggestions.value) {
       setTimeout(() => {
         if (chatStore.error) return
+        // 如果是手动终止的，不自动获取建议
+        if ((chatStore as any).wasManuallyStopped) return
         
         const lastMessage = chatStore.messages[chatStore.messages.length - 1]
         // 只有当最后一条消息是助手消息且内容不为空时，才触发自动建议

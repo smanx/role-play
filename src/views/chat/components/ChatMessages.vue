@@ -155,7 +155,7 @@ let scrollTimeout: ReturnType<typeof setTimeout> | null = null
 let isRestoringScroll = false
 
 // 滚动到最底部，使用平滑滚动
-function scrollToBottom(withDelay = false) {
+function scrollToBottom(time = 0) {
   const executeScroll = () => {
     nextTick(() => {
       if (messagesContainer.value) {
@@ -167,11 +167,7 @@ function scrollToBottom(withDelay = false) {
     })
   }
   
-  if (withDelay) {
-    setTimeout(executeScroll, 300)
-  } else {
-    executeScroll()
-  }
+  setTimeout(executeScroll, time)
 }
 
 // 保存滚动位置（防抖）+ 检测滚动到顶部
@@ -195,10 +191,34 @@ function handleScroll() {
     const characterId = chatStore.currentCharacter.id
     chatStore.resetPagination()
     chatStore.saveScrollPosition(characterId, 0)
+    
+    // 修复iOS设备聊天气泡空白问题：使用requestAnimationFrame和多次重绘
+    // 第一次：重绘
     nextTick(() => {
-      if (messagesContainer.value) {
-        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
-      }
+      requestAnimationFrame(() => {
+        if (!messagesContainer.value) return
+        
+        // 强制重绘 - iOS WebKit需要额外的布局触发
+        messagesContainer.value.style.display = 'none'
+        // 使用offsetHeight强制重排
+        void messagesContainer.value.offsetHeight
+        messagesContainer.value.style.display = ''
+        
+        // 第二次：滚动到底部
+        requestAnimationFrame(() => {
+          if (messagesContainer.value) {
+            messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+          }
+          
+          // 第三次：确保滚动完成后再强制重绘
+          requestAnimationFrame(() => {
+            if (messagesContainer.value) {
+              // 再次强制重绘以确保所有内容可见
+              void messagesContainer.value.offsetHeight
+            }
+          })
+        })
+      })
     })
   }
 
