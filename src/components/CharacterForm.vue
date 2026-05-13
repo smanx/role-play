@@ -138,14 +138,14 @@
               <div v-if="expandedSections.firstMessagePreview" class="mt-3">
                 <div class="rounded-xl border border-theme-border bg-[var(--theme-card-hover)] p-4">
                   <div class="flex items-start gap-3">
-                    <AvatarImage
+                    <!-- <AvatarImage
                       :src="form.avatar"
                       :name="form.name || '角色'"
                       size="md"
                       rounded="full"
                       gradient="primary"
                       class="flex-shrink-0"
-                    />
+                    /> -->
                     <div class="flex-1 min-w-0">
                       <div class="text-sm font-medium text-theme-text-primary mb-1">{{ form.name || '角色' }}</div>
                       <div v-html="renderedFirstMessage" class="text-theme-text-secondary prose prose-sm max-w-none"></div>

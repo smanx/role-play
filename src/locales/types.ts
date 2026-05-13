@@ -805,6 +805,43 @@ export interface SyncMessages {
   syncSettings: string
   syncHistory: string
   clearSyncData: string
+  chatSyncModalTitle: string
+  remainingDailyDownloads: string
+  bonusDownloads: string
+  upload: string
+  download: string
+  uploadDescription: string
+  generatingSyncCode: string
+  syncCode: string
+  copySyncCode: string
+  copied: string
+  syncCodeExpires: string
+  regenerate: string
+  syncCodePlaceholder: string
+  downloadDescription: string
+  downloading: string
+  downloadLimitReached: string
+  confirmOverwrite: string
+  confirmOverwriteDescription: string
+  confirm: string
+  cancel: string
+  activeSync: string
+  syncCodeLabel: string
+  characterName: string
+  downloadedTimes: string
+  expiresAt: string
+  cancelSync: string
+  downloadSuccess: string
+  syncCancelled: string
+  userDataSyncModalTitle: string
+  userDataUploadDescription: string
+  currentData: string
+  userDataCurrentData: string
+  userDataSyncCodeExpires: string
+  userDataDownloadDescription: string
+  userDataConfirmOverwriteDescription: string
+  userDataDownloadSuccess: string
+  userDataActiveSyncData: string
 }
 
 export interface CommentMessages {

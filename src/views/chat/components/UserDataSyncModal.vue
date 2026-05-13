@@ -3,7 +3,7 @@
     <div class="chat-card rounded-lg shadow-xl max-w-md w-full mx-4" @click.stop>
       <div class="p-6">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold text-theme-text-primary">用户数据同步</h3>
+          <h3 class="text-lg font-semibold text-theme-text-primary">{{ t('sync.userDataSyncModalTitle') }}</h3>
           <button @click="handleClose" class="text-theme-text-secondary hover:text-theme-text-primary">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -20,7 +20,7 @@
                 <svg class="w-4 h-4 text-[var(--theme-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                今日剩余下载次数
+                {{ t('sync.remainingDailyDownloads') }}
               </span>
               <div class="flex items-center gap-2">
                 <span class="text-lg font-bold" :class="syncStatus.remainingDaily > 0 ? 'text-[var(--theme-success)]' : 'text-theme-text-secondary'">{{ syncStatus.remainingDaily }}</span>
@@ -34,7 +34,7 @@
                 <svg class="w-4 h-4 text-[var(--theme-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                 </svg>
-                额外可下载次数
+                {{ t('sync.bonusDownloads') }}
               </span>
               <span class="text-lg font-bold" :class="syncStatus.remainingBonus > 0 ? 'text-[var(--theme-accent)]' : 'text-theme-text-secondary'">{{ syncStatus.remainingBonus }}</span>
             </div>
@@ -52,7 +52,7 @@
                 : 'text-theme-text-secondary hover:text-theme-text-primary'
             ]"
           >
-            上传
+            {{ t('sync.upload') }}
           </button>
           <button
             @click="mode = 'download'"
@@ -63,7 +63,7 @@
                 : 'text-theme-text-secondary hover:text-theme-text-primary'
             ]"
           >
-            下载
+            {{ t('sync.download') }}
           </button>
         </div>
 
@@ -71,24 +71,28 @@
         <div v-if="mode === 'upload'">
           <div v-if="!uploadResult">
             <p class="text-sm text-theme-text-secondary mb-4">
-              将上传您的预设、世界书和正则脚本数据到服务器
+              {{ t('sync.userDataUploadDescription') }}
             </p>
             <div class="text-sm text-theme-text-secondary mb-4">
-              <span class="text-theme-text-primary font-medium">当前数据：</span>
-              预设 {{ userDataStore.presets.length }} 个，世界书 {{ userDataStore.worldInfo.length }} 个，正则脚本 {{ userDataStore.regexScripts.length }} 个
+              <span class="text-theme-text-primary font-medium">{{ t('sync.currentData') }}</span>
+              <i18n-t keypath="sync.userDataCurrentData" tag="span">
+                <template #presets>{{ userDataStore.presets.length }}</template>
+                <template #worldInfo>{{ userDataStore.worldInfo.length }}</template>
+                <template #regexScripts>{{ userDataStore.regexScripts.length }}</template>
+              </i18n-t>
             </div>
             <button
               @click="handleUpload"
               :disabled="isSyncing"
               class="w-full py-2 px-4 bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] hover:from-[var(--theme-primary-dark)] hover:to-[var(--theme-secondary-dark)] disabled:opacity-50 text-white rounded-lg transition-all font-medium"
             >
-              {{ isSyncing ? '上传中...' : '生成同步码' }}
+              {{ isSyncing ? t('sync.generatingSyncCode') : t('sync.syncCode') }}
             </button>
           </div>
           
           <div v-else class="text-center">
             <div class="mb-4">
-              <p class="text-sm text-theme-text-secondary mb-2">同步码</p>
+              <p class="text-sm text-theme-text-secondary mb-2">{{ t('sync.syncCode') }}</p>
               <div class="flex items-center justify-center gap-2">
                 <div class="text-3xl font-mono font-bold text-theme-text-accent tracking-wider">
                   {{ uploadResult.syncCode }}
@@ -96,7 +100,7 @@
                 <button
                   @click="copyToClipboard(uploadResult.syncCode)"
                   class="p-2 rounded-lg hover:bg-[var(--theme-card-hover)] transition-colors"
-                  :title="copySuccess ? '已复制' : '复制同步码'"
+                  :title="copySuccess ? t('sync.copied') : t('sync.copySyncCode')"
                 >
                   <svg v-if="!copySuccess" class="w-5 h-5 text-theme-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
@@ -108,16 +112,16 @@
               </div>
             </div>
             <p class="text-sm text-theme-text-secondary mb-4">
-              请在另一设备输入此同步码下载数据
+              {{ t('sync.userDataSyncCodeExpires') }}
             </p>
             <p class="text-xs text-theme-text-secondary">
-              有效期至：{{ formatTime(uploadResult.expiresAt) }}
+              {{ t('sync.expiresAt') }} {{ formatTime(uploadResult.expiresAt) }}
             </p>
             <button
               @click="uploadResult = null"
               class="mt-4 text-sm text-theme-text-accent hover:underline"
             >
-              重新生成
+              {{ t('sync.regenerate') }}
             </button>
           </div>
         </div>
@@ -125,24 +129,24 @@
         <!-- 下载模式 -->
         <div v-else>
           <div class="mb-4">
-            <label class="block text-sm text-theme-text-secondary mb-2">同步码</label>
+            <label class="block text-sm text-theme-text-secondary mb-2">{{ t('sync.syncCode') }}</label>
             <input
               v-model="syncCode"
               type="text"
-              placeholder="请输入6位同步码"
+              :placeholder="t('sync.syncCodePlaceholder')"
               maxlength="6"
               class="w-full px-3 py-2 border border-theme-border rounded-lg chat-input-field text-theme-text-primary focus:ring-2 focus:ring-[var(--theme-primary)] focus:border-transparent uppercase"
             />
           </div>
           <p class="text-xs text-theme-text-secondary mb-4">
-            下载的数据将覆盖您当前的预设、世界书和正则脚本
+            {{ t('sync.userDataDownloadDescription') }}
           </p>
           <button
             @click="handleDownloadClick"
             :disabled="isSyncing || !syncCode || syncCode.length !== 6 || !canDownload"
             class="w-full py-2 px-4 bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] hover:from-[var(--theme-primary-dark)] hover:to-[var(--theme-secondary-dark)] disabled:opacity-50 text-white rounded-lg transition-all font-medium"
           >
-            {{ isSyncing ? '下载中...' : '下载' }}
+            {{ isSyncing ? t('sync.downloading') : t('sync.download') }}
           </button>
         </div>
 
@@ -158,17 +162,17 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <p class="text-sm font-semibold text-theme-text-primary">
-              您有一个活跃的同步任务
+              {{ t('sync.activeSync') }}
             </p>
           </div>
           <div class="text-sm text-theme-text-secondary space-y-2">
             <div class="flex items-center gap-2">
-              <span class="text-theme-text-secondary">同步码：</span>
+              <span class="text-theme-text-secondary">{{ t('sync.syncCodeLabel') }}</span>
               <span class="font-mono font-bold text-theme-text-accent text-lg tracking-wider">{{ syncStatus.activeSync.syncCode }}</span>
               <button
                 @click="copyToClipboard(syncStatus.activeSync.syncCode)"
                 class="p-1.5 rounded-lg hover:bg-[var(--theme-card-hover)] transition-all"
-                :title="copySuccess ? '已复制' : '复制同步码'"
+                :title="copySuccess ? t('sync.copied') : t('sync.copySyncCode')"
               >
                 <svg v-if="!copySuccess" class="w-4 h-4 text-theme-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
@@ -179,20 +183,24 @@
               </button>
             </div>
             <p v-if="syncStatus.activeSync.itemCount">
-              <span class="text-theme-text-secondary">数据：</span>
-              <span class="text-theme-text-primary font-medium">预设 {{ syncStatus.activeSync.itemCount.presets }} 个，世界书 {{ syncStatus.activeSync.itemCount.worldInfo }} 个，正则脚本 {{ syncStatus.activeSync.itemCount.regexScripts }} 个</span>
+              <span class="text-theme-text-secondary">{{ t('sync.userDataActiveSyncData') }}</span>
+              <i18n-t keypath="sync.userDataCurrentData" tag="span" class="text-theme-text-primary font-medium">
+                <template #presets>{{ syncStatus.activeSync.itemCount.presets }}</template>
+                <template #worldInfo>{{ syncStatus.activeSync.itemCount.worldInfo }}</template>
+                <template #regexScripts>{{ syncStatus.activeSync.itemCount.regexScripts }}</template>
+              </i18n-t>
             </p>
             <p v-if="syncStatus.activeSync.downloadCount" class="text-theme-text-accent">
-              <span class="text-theme-text-secondary">被下载：</span>
+              <span class="text-theme-text-secondary">{{ t('sync.downloadedTimes') }}</span>
               <span class="font-medium">{{ syncStatus.activeSync.downloadCount }} 次</span>
             </p>
-            <p><span class="text-theme-text-secondary">过期时间：</span>{{ formatTime(syncStatus.activeSync.expiresAt) }}</p>
+            <p><span class="text-theme-text-secondary">{{ t('sync.expiresAt') }}</span>{{ formatTime(syncStatus.activeSync.expiresAt) }}</p>
           </div>
           <button
             @click="handleCancel"
             class="mt-3 w-full py-2 px-4 border border-danger/30 text-danger rounded-lg hover:bg-danger/10 transition-all text-sm font-medium"
           >
-            取消同步
+            {{ t('sync.cancelSync') }}
           </button>
         </div>
       </div>
@@ -208,24 +216,24 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
               </svg>
             </div>
-            <h3 class="text-lg font-semibold text-theme-text-primary">确认覆盖</h3>
+            <h3 class="text-lg font-semibold text-theme-text-primary">{{ t('sync.confirmOverwrite') }}</h3>
           </div>
           <p class="text-sm text-theme-text-secondary mb-6">
-            下载的数据将<strong class="text-danger">覆盖</strong>您当前的预设、世界书和正则脚本，此操作不可撤销。
+            {{ t('sync.userDataConfirmOverwriteDescription') }}
           </p>
           <div class="flex gap-3">
             <button
               @click="showConfirmDialog = false"
               class="flex-1 px-4 py-2.5 chat-card text-theme-text-primary rounded-xl hover:bg-[var(--theme-card-hover)] transition-all font-medium border border-theme-border text-sm"
             >
-              取消
+              {{ t('sync.cancel') }}
             </button>
             <button
               @click="confirmDownload"
               :disabled="isSyncing"
               class="flex-1 px-4 py-2.5 bg-gradient-to-r from-[var(--theme-danger)] to-[var(--theme-danger-light)] text-white rounded-xl hover:opacity-90 transition-all font-medium text-sm"
             >
-              {{ isSyncing ? '下载中...' : '确认覆盖' }}
+              {{ isSyncing ? t('sync.downloading') : t('sync.confirm') }}
             </button>
           </div>
         </div>
@@ -236,8 +244,11 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useUserDataStore } from '@/stores/userData'
 import { useDialog } from '@/composables/useDialog'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   show: boolean
@@ -336,7 +347,7 @@ function handleDownloadClick() {
   error.value = null
   
   if (!canDownload.value) {
-    error.value = '下载次数已达上限'
+    error.value = t('sync.downloadLimitReached')
     return
   }
   
@@ -349,7 +360,11 @@ async function confirmDownload() {
     const result = await userDataStore.downloadUserDataSync(syncCode.value)
     showConfirmDialog.value = false
     handleClose()
-    await showSuccessAlert(`成功下载：预设 ${result.itemCount.presets} 个，世界书 ${result.itemCount.worldInfo} 个，正则脚本 ${result.itemCount.regexScripts} 个`)
+    await showSuccessAlert(t('sync.userDataDownloadSuccess', { 
+      presets: result.itemCount.presets, 
+      worldInfo: result.itemCount.worldInfo, 
+      regexScripts: result.itemCount.regexScripts 
+    }))
   } catch (e: any) {
     error.value = e.message
     showConfirmDialog.value = false
@@ -361,7 +376,7 @@ async function handleCancel() {
   error.value = null
   try {
     await userDataStore.cancelUserDataSync()
-    await showSuccessAlert('已取消同步')
+    await showSuccessAlert(t('sync.syncCancelled'))
   } catch (e: any) {
     error.value = e.message
   }
@@ -369,7 +384,8 @@ async function handleCancel() {
 
 function formatTime(isoString: string) {
   const date = new Date(isoString)
-  return date.toLocaleString('zh-CN', {
+  const locale = t('locale') === 'zh-CN' ? 'zh-CN' : 'en-US'
+  return date.toLocaleString(locale, {
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
