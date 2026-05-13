@@ -1184,15 +1184,14 @@ async function fetchSuggestions(options: { autoShow?: boolean, force?: boolean }
     }
     chatStore.lastSuggestionsMessagesSnapshot = JSON.stringify(chatStore.messages.slice(-6))
   } catch (error: any) {
-    // 如果是abort错误，不显示错误提示
     if (error.name === 'AbortError') {
       return
     }
     
     console.error('Failed to fetch suggestions:', error)
-    if (error.message === 'Insufficient quota') {
+    if (error.message?.includes('额度不足')) {
       setTimeout(() => {
-        showToast('对话额度不足，请签到获取更多额度或联系管理员', 'error')
+        showToast(error.message, 'error')
       }, 100)
     }
   } finally {

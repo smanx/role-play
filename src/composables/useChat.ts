@@ -222,9 +222,9 @@ export function useChat(globalRegex: any[] = []) {
       const data = await response.json()
       
       if (data.error) {
-        if (data.error === 'Insufficient quota') {
+        if (data.error.includes('额度不足')) {
           setTimeout(() => {
-            showErrorAlert('对话额度不足，请签到获取更多额度或联系管理员')
+            showErrorAlert(data.error)
           }, 100)
         }
         return
