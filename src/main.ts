@@ -5,6 +5,7 @@ import App from './App.vue'
 import './style.css'
 import { loadTheme } from './utils/theme'
 import { migrateFromLocalStorage } from './utils/storageService'
+import { i18n } from './locales'
 
 function setViewportHeight() {
   const vh = window.innerHeight * 0.01
@@ -84,6 +85,7 @@ migrateFromLocalStorage().catch(e => console.warn('Storage migration failed:', e
 const app = createApp(App)
 app.use(createPinia())
 app.use(router)
+app.use(i18n)
 app.mount('#app')
 
 function removeLoading() {

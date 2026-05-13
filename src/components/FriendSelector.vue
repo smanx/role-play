@@ -8,7 +8,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>
           </span>
-          添加好友
+          {{ t('friends.addFriendTitle') }}
         </h2>
         <div class="flex items-center gap-2">
           <button
@@ -18,7 +18,7 @@
             <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
-            <span class="hidden sm:inline">好友召回</span>
+            <span class="hidden sm:inline">{{ t('friends.recallFriends') }}</span>
           </button>
           <button @click="close" class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg sm:rounded-xl hover:bg-[var(--theme-card-hover)] text-theme-text-secondary hover:text-theme-text-primary transition-colors duration-200">
             <span class="text-base sm:text-lg">×</span>
@@ -35,7 +35,7 @@
             <input
               v-model="searchQuery"
               type="text"
-              placeholder="搜索角色名称..."
+              :placeholder="t('friends.searchCharacterPlaceholder')"
               class="w-full pl-10 pr-4 py-2.5 chat-input-field border border-theme-border rounded-xl focus:ring-2 focus:ring-[var(--theme-primary)] focus:border-transparent"
             />
             <div v-if="isSearching" class="absolute right-3 top-1/2 -translate-y-1/2">
@@ -50,12 +50,12 @@
               v-model="sortBy"
               class="px-3 py-2 chat-input-field border border-theme-border rounded-xl text-sm focus:ring-2 focus:ring-[var(--theme-primary)] focus:border-transparent"
             >
-              <option value="updatedAt">最新更新</option>
-              <option value="quota_desc">热度最高</option>
-              <option value="likeCount">点赞数</option>
-              <option value="commentCount">评论数</option>
-              <option value="createdAt">创建日期</option>
-              <option value="quota_asc">热度最低</option>
+              <option value="updatedAt">{{ t('friends.sortUpdatedAt') }}</option>
+              <option value="quota_desc">{{ t('friends.sortQuotaDesc') }}</option>
+              <option value="likeCount">{{ t('friends.sortLikeCount') }}</option>
+              <option value="commentCount">{{ t('friends.sortCommentCount') }}</option>
+              <option value="createdAt">{{ t('friends.sortCreatedAt') }}</option>
+              <option value="quota_asc">{{ t('friends.sortQuotaAsc') }}</option>
             </select>
           </div>
         </div>
@@ -70,9 +70,9 @@
         :action-character-id="actionCharacterId"
         :show-add-button="true"
         :show-friend-status="true"
-        empty-text="暂无角色"
-        empty-subtext="请先在管理员页面添加角色"
-        friend-status-title="已添加"
+        :empty-text="t('friends.noCharacters')"
+        :empty-subtext="t('friends.noCharactersHint')"
+        :friend-status-title="t('friends.alreadyAdded')"
         @page-change="loadPage"
         @select="viewCharacterDetail"
         @action="toggleFriend"
@@ -100,8 +100,11 @@ import { useUserStore } from '@/stores/user'
 import { charactersApi } from '@/api'
 import type { Character } from '@/types'
 import { getLocalFriends } from '@/utils/localFriendStorage'
+import { useI18n } from '@/composables/useI18n'
 import CharacterSelectorList from './CharacterSelectorList.vue'
 import UserCharactersModal from './UserCharactersModal.vue'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   visible: boolean
@@ -151,7 +154,7 @@ const toggleFriend = async (character: Character) => {
   
   const characterId = character.role_play?.id || character.id
   if (!characterId) {
-    showToast('角色ID无效', 'error')
+    showToast(t('friends.invalidCharacterId'), 'error')
     return
   }
   
@@ -161,9 +164,9 @@ const toggleFriend = async (character: Character) => {
     await userStore.addOnlineFriendCharacter(characterId, sourceUrl, 'add')
     character.isFriend = true
     await userStore.loadLocalFriends()
-    showToast('添加成功', 'success')
+    showToast(t('friends.addSuccess'), 'success')
   } catch (error: any) {
-    showToast(error.message || '操作失败', 'error')
+    showToast(error.message || t('friends.operationFailed'), 'error')
   } finally {
     actionCharacterId.value = null
   }

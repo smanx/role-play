@@ -11,7 +11,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 class="text-lg font-bold gradient-text">我的好友</h1>
+        <h1 class="text-lg font-bold gradient-text">{{ t('friends.title') }}</h1>
         <div class="flex-1"></div>
       </div>
     </div>
@@ -25,7 +25,7 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="搜索好友..."
+          placeholder="..."
           class="w-full pl-10 pr-4 py-2.5 chat-input-field border border-theme-border rounded-xl focus:ring-2 focus:ring-[var(--theme-primary)] focus:border-transparent"
           @input="debounceSearch"
         />
@@ -53,8 +53,8 @@
         :show-like-count="false"
         :show-tags="false"
         :show-action="true"
-        empty-text="暂无好友"
-        empty-subtext="去添加一些角色吧"
+        :empty-text="t('friends.noFriends')"
+        :empty-subtext="t('character.createCharacter')"
         @page-change="loadPage"
         @page-size-change="handlePageSizeChange"
         @select="handleSelectCharacter"
@@ -64,7 +64,7 @@
           <button
             @click.stop="handleRemoveFriend(character)"
             class="w-8 h-8 rounded-full border border-[var(--theme-danger)]/30 flex items-center justify-center hover:bg-[var(--theme-danger)]/10 hover:border-[var(--theme-danger)] transition-colors group"
-            :title="'删除好友'"
+            :title="t('friends.removeFriend')"
           >
             <svg class="w-4 h-4 text-[var(--theme-danger)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -77,13 +77,13 @@
     <!-- 删除确认对话框 -->
     <Dialog
       v-model:visible="showRemoveConfirm"
-      title="删除好友"
-      confirm-text="删除"
-      cancel-text="取消"
+      :title="t('friends.removeFriend')"
+      :confirm-text="t('common.delete')"
+      :cancel-text="t('common.cancel')"
       confirm-type="danger"
       @confirm="confirmRemoveFriend"
     >
-      <p class="text-theme-text-secondary">确定要删除「{{ characterToRemove?.name }}」吗？</p>
+      <p class="text-theme-text-secondary">{{ t('character.confirmDelete') }}</p>
     </Dialog>
   </div>
 </template>
@@ -92,6 +92,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { useI18n } from '@/composables/useI18n'
 import { userApi, type FriendsResponse } from '@/api'
 import type { Character } from '@/types'
 import CharacterSelectorList from '@/components/CharacterSelectorList.vue'
@@ -99,6 +100,7 @@ import Dialog from '@/components/Dialog.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
+const { t } = useI18n()
 
 const friends = ref<Character[]>([])
 const searchQuery = ref('')

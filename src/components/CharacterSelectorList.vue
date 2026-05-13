@@ -7,7 +7,7 @@
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
         </svg>
       </div>
-      <p class="text-theme-text-secondary">加载中...</p>
+      <p class="text-theme-text-secondary">{{ t('common.loadingText') }}</p>
     </div>
     
     <div v-else-if="characters.length === 0" class="text-center py-12">
@@ -97,7 +97,7 @@
     
     <div class="mt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
       <div class="flex items-center gap-2">
-        <span class="text-sm text-theme-text-secondary">每页</span>
+        <span class="text-sm text-theme-text-secondary">{{ t('common.perPage') }}</span>
         <select
           :value="localPageSize"
           @change="handlePageSizeChange"
@@ -109,7 +109,7 @@
           <option :value="50">50</option>
           <option :value="100">100</option>
         </select>
-        <span class="text-sm text-theme-text-secondary">条</span>
+        <span class="text-sm text-theme-text-secondary">{{ t('common.items') }}</span>
       </div>
       
       <div v-if="totalPages > 1" class="flex items-center justify-center gap-2">
@@ -118,7 +118,7 @@
           :disabled="currentPage === 1 || isLoading"
           class="px-3 py-1.5 rounded-lg border border-theme-border text-theme-text-secondary hover:bg-[var(--theme-card-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          上一页
+          {{ t('common.previousPage') }}
         </button>
         <span class="text-sm text-theme-text-secondary">
           {{ currentPage }} / {{ totalPages }}
@@ -128,7 +128,7 @@
           :disabled="currentPage === totalPages || isLoading"
           class="px-3 py-1.5 rounded-lg border border-theme-border text-theme-text-secondary hover:bg-[var(--theme-card-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          下一页
+          {{ t('common.nextPage') }}
         </button>
       </div>
     </div>
@@ -138,7 +138,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Character } from '@/types'
+import { useI18n } from '@/composables/useI18n'
 import AvatarImage from './AvatarImage.vue'
+
+const { t } = useI18n()
 
 interface Props {
   characters: Character[]

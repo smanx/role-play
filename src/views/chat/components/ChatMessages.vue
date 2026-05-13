@@ -12,10 +12,10 @@
       <div v-if="hasMoreMessages" class="flex justify-center py-3">
         <div v-if="isLoadingMore" class="flex items-center gap-2 text-theme-text-secondary text-sm">
           <div class="w-4 h-4 border-2 border-[var(--theme-primary)] border-t-transparent rounded-full animate-spin"></div>
-          加载中...
+          {{ t('common.loading') }}
         </div>
         <button v-else @click="$emit('loadMore')" class="text-sm text-[var(--theme-primary)] hover:underline px-4 py-2">
-          ↑ 加载更多消息
+          ↑ {{ t('chat.menu.loadMore') }}
         </button>
       </div>
 
@@ -54,14 +54,14 @@
               <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-theme-text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
               </svg>
-              建议回复
+              {{ t('chat.suggestions') }}
             </div>
             <div class="flex items-center gap-2">
               <button
                 @click.stop="$emit('refreshSuggestions')"
                 :disabled="isGeneratingSuggestions"
                 class="px-3 py-2 rounded-xl hover:bg-[var(--theme-primary)]/10 transition-all text-theme-text-accent disabled:opacity-50"
-                title="刷新建议"
+                :title="t('chat.refreshSuggestions')"
               >
                 <div v-if="isGeneratingSuggestions" class="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                 <svg v-else class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -71,7 +71,7 @@
               <button
                 @click.stop="$emit('closeSuggestions')"
                 class="px-3 py-2 rounded-xl hover:bg-[var(--theme-danger)]/10 transition-all text-theme-text-secondary"
-                title="关闭"
+                :title="t('common.close')"
               >
                 <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -116,6 +116,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useChatStore } from '@/stores/chat'
+import { useI18n } from '@/composables/useI18n'
 import type { CompiledRegexScript } from '@/composables/useChat'
 import ChatMessage from './ChatMessage.vue'
 
@@ -150,6 +151,7 @@ const emit = defineEmits<{
 }>()
 
 const chatStore = useChatStore()
+const { t } = useI18n()
 const messagesContainer = ref<HTMLElement | null>(null)
 let scrollTimeout: ReturnType<typeof setTimeout> | null = null
 let isRestoringScroll = false
