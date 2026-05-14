@@ -1,23 +1,24 @@
 <template>
-  <div
-    ref="messagesContainer"
-    data-scrollable="true"
-    class="absolute inset-0 overflow-y-auto overflow-x-hidden px-2 sm:px-4 space-y-4 overscroll-contain"
-    style="padding-top: calc(3.5rem + env(safe-area-inset-top, 0px)); padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px) + (100vh - 100dvh)); -webkit-overflow-scrolling: touch;"
-    @click="$emit('click')"
-  >
-    <div class="h-0"></div>
-    <div class="max-w-4xl mx-auto">
-      <!-- 加载更多历史消息指示器 -->
-      <div v-if="hasMoreMessages" class="flex justify-center py-3">
-        <div v-if="isLoadingMore" class="flex items-center gap-2 text-theme-text-secondary text-sm">
-          <div class="w-4 h-4 border-2 border-[var(--theme-primary)] border-t-transparent rounded-full animate-spin"></div>
-          {{ t('common.loading') }}
+  <div class="relative" style="height: 100%;">
+    <div
+      ref="messagesContainer"
+      data-scrollable="true"
+      class="absolute inset-0 overflow-y-auto overflow-x-hidden px-2 sm:px-4 space-y-4 overscroll-contain"
+      style="padding-top: calc(3.5rem + env(safe-area-inset-top, 0px)); padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px) + (100vh - 100dvh)); -webkit-overflow-scrolling: touch;"
+      @click="$emit('click')"
+    >
+      <div class="h-0"></div>
+      <div class="max-w-4xl mx-auto">
+        <!-- 加载更多历史消息指示器 -->
+        <div v-if="hasMoreMessages" class="flex justify-center py-3">
+          <div v-if="isLoadingMore" class="flex items-center gap-2 text-theme-text-secondary text-sm">
+            <div class="w-4 h-4 border-2 border-[var(--theme-primary)] border-t-transparent rounded-full animate-spin"></div>
+            {{ t('common.loading') }}
+          </div>
+          <button v-else @click="$emit('loadMore')" class="text-sm text-[var(--theme-primary)] hover:underline px-4 py-2">
+            ↑ {{ t('chat.menu.loadMore') }}
+          </button>
         </div>
-        <button v-else @click="$emit('loadMore')" class="text-sm text-[var(--theme-primary)] hover:underline px-4 py-2">
-          ↑ {{ t('chat.menu.loadMore') }}
-        </button>
-      </div>
 
       <ChatMessage
         v-for="(message, index) in messages"
@@ -110,11 +111,36 @@
         </div>
       </Transition>
     </div>
+    </div>
+
+    <!-- 滚动按钮 -->
+    <Transition name="scroll-buttons">
+      <div v-if="showScrollButtons && isButtonsVisible" class="fixed right-4 top-1/2 -translate-y-1/2 z-10 flex flex-col gap-2">
+        <button
+          @click="scrollToTop"
+          class="w-10 h-10 rounded-full bg-white/50 dark:bg-gray-800/50 shadow-lg border border-gray-200/50 dark:border-gray-700/50 flex items-center justify-center hover:bg-white/80 dark:hover:bg-gray-700/80 transition-all"
+          title="滚动到顶部"
+        >
+          <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+          </svg>
+        </button>
+        <button
+          @click="scrollToBottom"
+          class="w-10 h-10 rounded-full bg-white/50 dark:bg-gray-800/50 shadow-lg border border-gray-200/50 dark:border-gray-700/50 flex items-center justify-center hover:bg-white/80 dark:hover:bg-gray-700/80 transition-all"
+          title="滚动到底部"
+        >
+          <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+          </svg>
+        </button>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import { useI18n } from '@/composables/useI18n'
 import type { CompiledRegexScript } from '@/composables/useChat'
@@ -131,6 +157,12 @@ const props = defineProps<{
   suggestions: string[]
   isGeneratingSuggestions: boolean
 }>()
+
+const chatStore = useChatStore()
+
+const showScrollButtons = computed(() => {
+  return props.messages.length > 3 * chatStore.PAGE_SIZE
+})
 
 const emit = defineEmits<{
   (e: 'click'): void
@@ -150,11 +182,24 @@ const emit = defineEmits<{
   (e: 'sendSuggestion', suggestion: string): void
 }>()
 
-const chatStore = useChatStore()
 const { t } = useI18n()
 const messagesContainer = ref<HTMLElement | null>(null)
 let scrollTimeout: ReturnType<typeof setTimeout> | null = null
+let hideButtonsTimeout: ReturnType<typeof setTimeout> | null = null
 let isRestoringScroll = false
+const isButtonsVisible = ref(true)
+
+// 滚动到顶部
+function scrollToTop() {
+  nextTick(() => {
+    if (messagesContainer.value) {
+      messagesContainer.value.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      })
+    }
+  })
+}
 
 // 滚动到最底部，使用平滑滚动
 function scrollToBottom(time = 0) {
@@ -172,9 +217,22 @@ function scrollToBottom(time = 0) {
   setTimeout(executeScroll, time)
 }
 
-// 保存滚动位置（防抖）+ 检测滚动到顶部
+// 保存滚动位置（防抖）+ 检测滚动到顶部 + 控制按钮可见性
 function handleScroll() {
   if (!messagesContainer.value || !chatStore.currentCharacter) return
+
+  // 显示滚动按钮
+  isButtonsVisible.value = true
+  
+  // 清除之前的隐藏定时器
+  if (hideButtonsTimeout) {
+    clearTimeout(hideButtonsTimeout)
+  }
+  
+  // 滚动停止后3秒隐藏按钮
+  hideButtonsTimeout = setTimeout(() => {
+    isButtonsVisible.value = false
+  }, 3000)
 
   // 检测滚动到顶部，自动加载更多历史消息
   if (messagesContainer.value.scrollTop < 50 && props.hasMoreMessages && !props.isLoadingMore) {
@@ -318,6 +376,10 @@ onMounted(() => {
     isRestoringScroll = true
     restoreScrollPosition()
   }
+  // 初始时显示按钮，3秒后隐藏
+  hideButtonsTimeout = setTimeout(() => {
+    isButtonsVisible.value = false
+  }, 3000)
 })
 
 onUnmounted(() => {
@@ -326,6 +388,9 @@ onUnmounted(() => {
   }
   if (scrollTimeout) {
     clearTimeout(scrollTimeout)
+  }
+  if (hideButtonsTimeout) {
+    clearTimeout(hideButtonsTimeout)
   }
 })
 
@@ -382,5 +447,18 @@ defineExpose({
   max-height: 0;
   opacity: 0;
   transform: translateY(6px);
+}
+
+.scroll-buttons-enter-active,
+.scroll-buttons-leave-active {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.scroll-buttons-enter-from,
+.scroll-buttons-leave-to {
+  opacity: 0;
+  transform: translateY(-50%) translateX(20px);
 }
 </style>
