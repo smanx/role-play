@@ -9,6 +9,7 @@ import { streamChat } from '@/utils/llmClient'
 import { getLocalFriends, isLocalFriend, getLocalFriend, pinFriendToTop } from '@/utils/localFriendStorage'
 import { modelsApi, v1Api, chatSyncApi } from '@/api'
 import { generateId } from '@/utils/uuid'
+import { config } from '@/utils/config'
 
 function useCustomModelConfig(): CustomModelConfig {
   try {
@@ -929,10 +930,15 @@ const globalDefaultModel = ref('')
     })
     await saveChatHistory(characterId, messagesToSave)
 
-    const historyForApi = messages.value
+    let historyForApi = messages.value
       .slice(0, -2)
       .filter(m => m.role !== 'system')
       .map(m => ({ role: m.role, content: m.content }))
+    
+    // 截取最新的 n 条消息
+    if (config.chatMaxHistory > 0 && historyForApi.length > config.chatMaxHistory) {
+      historyForApi = historyForApi.slice(-config.chatMaxHistory)
+    }
 
     // 异步执行流式响应，不等待
     executeStream(
@@ -1005,10 +1011,15 @@ const globalDefaultModel = ref('')
 
     const userMessage = messages.value[userMessageIndex]
 
-    const historyForApi = messages.value
+    let historyForApi = messages.value
       .slice(0, userMessageIndex)
       .filter(m => m.role !== 'system')
       .map(m => ({ role: m.role, content: m.content }))
+    
+    // 截取最新的 n 条消息
+    if (config.chatMaxHistory > 0 && historyForApi.length > config.chatMaxHistory) {
+      historyForApi = historyForApi.slice(-config.chatMaxHistory)
+    }
 
     const newMessages = [...messages.value.slice(0, userMessageIndex + 1)]
 
