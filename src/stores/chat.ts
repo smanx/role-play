@@ -10,6 +10,7 @@ import { getLocalFriends, isLocalFriend, getLocalFriend, pinFriendToTop } from '
 import { modelsApi, v1Api, chatSyncApi } from '@/api'
 import { generateId } from '@/utils/uuid'
 import { config } from '@/utils/config'
+import { i18n } from '@/locales'
 
 function useCustomModelConfig(): CustomModelConfig {
   try {
@@ -936,8 +937,20 @@ const globalDefaultModel = ref('')
       .map(m => ({ role: m.role, content: m.content }))
     
     // 截取最新的 n 条消息
+    let historyTruncated = false
+    let truncatedCount = 0
     if (config.chatMaxHistory > 0 && historyForApi.length > config.chatMaxHistory) {
+      truncatedCount = historyForApi.length - config.chatMaxHistory
       historyForApi = historyForApi.slice(-config.chatMaxHistory)
+      historyTruncated = true
+    }
+    
+    // 如果历史记录被截取，添加系统提示
+    if (historyTruncated) {
+      historyForApi.unshift({
+        role: 'system',
+        content: i18n.global.t('chat.historyTruncatedForChat', { truncatedCount, maxHistory: config.chatMaxHistory })
+      })
     }
 
     // 异步执行流式响应，不等待
@@ -1017,8 +1030,20 @@ const globalDefaultModel = ref('')
       .map(m => ({ role: m.role, content: m.content }))
     
     // 截取最新的 n 条消息
+    let historyTruncated = false
+    let truncatedCount = 0
     if (config.chatMaxHistory > 0 && historyForApi.length > config.chatMaxHistory) {
+      truncatedCount = historyForApi.length - config.chatMaxHistory
       historyForApi = historyForApi.slice(-config.chatMaxHistory)
+      historyTruncated = true
+    }
+    
+    // 如果历史记录被截取，添加系统提示
+    if (historyTruncated) {
+      historyForApi.unshift({
+        role: 'system',
+        content: i18n.global.t('chat.historyTruncatedForChat', { truncatedCount, maxHistory: config.chatMaxHistory })
+      })
     }
 
     const newMessages = [...messages.value.slice(0, userMessageIndex + 1)]

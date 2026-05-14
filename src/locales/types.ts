@@ -159,6 +159,8 @@ export interface ChatMessages {
   welcomeMessage: string
   modelConfig: string
   apiConfig: string
+  historyTruncatedForSuggestions: string
+  historyTruncatedForChat: string
   menu: {
     newChat: string
     export: string

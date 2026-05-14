@@ -1091,8 +1091,20 @@ async function fetchSuggestions(options: { autoShow?: boolean, force?: boolean }
     // 在前端构建上下文（不添加用户新消息）
     // 截取最新的 n 条消息
     let filteredHistory = chatStore.messages.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content }))
+    let historyTruncated = false
+    let truncatedCount = 0
     if (config.suggestionsMaxHistory > 0 && filteredHistory.length > config.suggestionsMaxHistory) {
+      truncatedCount = filteredHistory.length - config.suggestionsMaxHistory
       filteredHistory = filteredHistory.slice(-config.suggestionsMaxHistory)
+      historyTruncated = true
+    }
+    
+    // 如果历史记录被截取，添加系统提示
+    if (historyTruncated) {
+      filteredHistory.unshift({
+        role: 'system',
+        content: t('chat.historyTruncatedForSuggestions', { truncatedCount, maxHistory: config.suggestionsMaxHistory })
+      })
     }
     
     const contextResult = await chatStore.buildLocalContext(

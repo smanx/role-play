@@ -160,6 +160,8 @@ const zhCN: LocaleMessages = {
     welcomeMessage: '欢迎加入！您已成功登录，开始您的角色扮演之旅吧！',
     modelConfig: '模型配置',
     apiConfig: 'API配置',
+    historyTruncatedForSuggestions: '[注意：由于对话历史较长，已截取前 {truncatedCount} 条历史对话，以上仅显示了最新的 {maxHistory} 条对话。请只基于这些最新对话生成建议。]',
+    historyTruncatedForChat: '[注意：由于对话历史较长，已截取前 {truncatedCount} 条历史对话，以上仅显示了最新的 {maxHistory} 条对话。请只基于这些最新对话继续对话。]',
     menu: {
       newChat: '新对话',
       export: '导出',

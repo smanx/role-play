@@ -160,6 +160,8 @@ const enUS: LocaleMessages = {
     welcomeMessage: 'Welcome! You have successfully logged in. Start your role-play journey!',
     modelConfig: 'Model configuration',
     apiConfig: 'API configuration',
+    historyTruncatedForSuggestions: '[Note: Due to long conversation history, the first {truncatedCount} dialogs have been truncated. Only the most recent {maxHistory} dialogs are shown above. Please generate suggestions based only on these recent dialogs.]',
+    historyTruncatedForChat: '[Note: Due to long conversation history, the first {truncatedCount} dialogs have been truncated. Only the most recent {maxHistory} dialogs are shown above. Please continue the conversation based only on these recent dialogs.]',
     menu: {
       newChat: 'New Chat',
       export: 'Export',
