@@ -11,6 +11,7 @@ import { modelsApi, v1Api, chatSyncApi } from '@/api'
 import { generateId } from '@/utils/uuid'
 import { config } from '@/utils/config'
 import { i18n } from '@/locales'
+import { countChatTokens, estimateTokens } from '@/utils/tokenCounter'
 
 function useCustomModelConfig(): CustomModelConfig {
   try {
@@ -240,6 +241,25 @@ const globalDefaultModel = ref('')
   const hasMessages = computed(() => messages.value.length > 0)
   
   const totalMessagesCount = computed(() => getEffectiveMessageCount())
+  
+  const totalCharactersCount = computed(() => {
+    let count = 0
+    for (const msg of messages.value) {
+      if (msg.content) {
+        count += msg.content.length
+      }
+    }
+    return count
+  })
+  
+  const totalTokensCount = computed(() => {
+    const chatMessages = messages.value.map(m => ({
+      role: m.role,
+      content: m.content || '',
+      name: m.name
+    }))
+    return countChatTokens(chatMessages)
+  })
   
   const isAnonymous = computed(() => userStore.isAnonymous)
   
@@ -1346,6 +1366,8 @@ const globalDefaultModel = ref('')
     downloadChatSync,
     loadSyncStatus,
     cancelChatSync,
-    totalMessagesCount
+    totalMessagesCount,
+    totalCharactersCount,
+    totalTokensCount
   }
 })

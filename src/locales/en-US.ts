@@ -176,6 +176,13 @@ const enUS: LocaleMessages = {
       quickReplies: 'Quick Replies',
       sprites: 'Sprites',
       groupChat: 'Group Chat',
+      stats: 'Statistics',
+    },
+    stats: {
+      messages: 'Messages',
+      characters: 'Characters',
+      tokens: 'Tokens',
+      estimateNote: 'Token count is estimated, actual usage may vary',
     },
   },
   character: {

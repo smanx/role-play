@@ -176,6 +176,13 @@ const zhCN: LocaleMessages = {
       quickReplies: '快速回复',
       sprites: '角色精灵图',
       groupChat: '群聊',
+      stats: '统计信息',
+    },
+    stats: {
+      messages: '消息条数',
+      characters: '总字数',
+      tokens: 'Token 预估',
+      estimateNote: 'Token 数量为预估数值，实际消耗可能有所差异',
     },
   },
   character: {

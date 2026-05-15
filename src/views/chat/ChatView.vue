@@ -234,6 +234,17 @@
           </button>
           <div class="border-t border-theme-border my-1"></div>
           <button
+            @click="showChatStats = true; showMenuDropdown = false"
+            class="w-full px-4 py-2.5 text-left text-sm text-theme-text-primary menu-dropdown-item flex items-center gap-3 transition-all"
+          >
+            <div class="w-7 h-7 rounded-lg bg-[var(--theme-accent)]/10 flex items-center justify-center text-theme-text-accent">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <span>{{ t('chat.menu.stats') }}</span>
+          </button>
+          <button
             @click="confirmClearHistory"
             class="w-full px-4 py-2.5 text-left text-sm text-[var(--theme-danger)] hover:bg-[var(--theme-danger-bg)] flex items-center gap-3 transition-all"
           >
@@ -482,6 +493,73 @@
       </div>
     </div>
 
+    <div v-if="showChatStats" class="fixed inset-0 bg-black/50 backdrop-blur-xl flex items-center justify-center z-[9999] p-4" @click="showChatStats = false">
+      <div class="chat-card rounded-2xl p-4 sm:p-6 max-w-md w-full shadow-2xl border border-theme-border" @click.stop>
+        <div class="flex items-center justify-between mb-4 sm:mb-6">
+          <div class="flex items-center gap-2 sm:gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-[var(--theme-accent)] to-[var(--theme-secondary)] flex items-center justify-center">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-base sm:text-lg font-semibold text-theme-text-primary">{{ t('chat.menu.stats') }}</h3>
+              <p class="text-xs sm:text-sm text-theme-text-secondary">{{ chatStore.currentCharacter?.name || t('chat.unknownCharacter') }}</p>
+            </div>
+          </div>
+          <button @click="showChatStats = false" class="p-2 rounded-xl hover:bg-[var(--theme-card-hover)] transition-all">
+            <svg class="w-5 h-5 text-theme-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="space-y-3 sm:space-y-4">
+          <div class="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-[var(--theme-card-hover)]">
+            <div class="flex items-center gap-2 sm:gap-3">
+              <div class="w-8 h-8 rounded-lg bg-[var(--theme-primary)]/10 flex items-center justify-center">
+                <svg class="w-4 h-4 text-[var(--theme-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+              </div>
+              <span class="text-sm text-theme-text-secondary">{{ t('chat.stats.messages') }}</span>
+            </div>
+            <span class="text-lg sm:text-xl font-bold text-theme-text-primary">{{ chatStore.totalMessagesCount }}</span>
+          </div>
+
+          <div class="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-[var(--theme-card-hover)]">
+            <div class="flex items-center gap-2 sm:gap-3">
+              <div class="w-8 h-8 rounded-lg bg-[var(--theme-secondary)]/10 flex items-center justify-center">
+                <svg class="w-4 h-4 text-[var(--theme-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <span class="text-sm text-theme-text-secondary">{{ t('chat.stats.characters') }}</span>
+            </div>
+            <span class="text-lg sm:text-xl font-bold text-theme-text-primary">{{ formatNumber(chatStore.totalCharactersCount) }}</span>
+          </div>
+
+          <div class="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-[var(--theme-card-hover)]">
+            <div class="flex items-center gap-2 sm:gap-3">
+              <div class="w-8 h-8 rounded-lg bg-[var(--theme-accent)]/10 flex items-center justify-center">
+                <svg class="w-4 h-4 text-[var(--theme-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <span class="text-sm text-theme-text-secondary">{{ t('chat.stats.tokens') }}</span>
+            </div>
+            <span class="text-lg sm:text-xl font-bold text-theme-text-primary">{{ formatNumber(chatStore.totalTokensCount) }}</span>
+          </div>
+        </div>
+
+        <div class="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-theme-border">
+          <p class="text-xs sm:text-sm text-theme-text-secondary text-center">
+            {{ t('chat.stats.estimateNote') }}
+          </p>
+        </div>
+      </div>
+    </div>
+
     <CustomModelConfigModal
       v-model:visible="showCustomModelConfig"
       v-model:selected-config-id="selectedConfigId"
@@ -656,6 +734,7 @@ const showFriendSelector = ref(false)
 const showUserSettings = ref(false)
 const showUserDataSettings = ref(false)
 const showChatSync = ref(false)
+const showChatStats = ref(false)
 const showAbout = ref(false)
 const buildTime = __APP_BUILD_TIME__
 const backgroundImageUrl = ref<string | null>(null)
@@ -836,6 +915,12 @@ const editingIndex = ref(-1)
 
 const toastMessage = ref('')
 const toastType = ref<'success' | 'error'>('success')
+
+function formatNumber(num: number): string {
+  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`
+  return String(num)
+}
 
 function showToast(message: string, type: 'success' | 'error' = 'success') {
   toastMessage.value = message
