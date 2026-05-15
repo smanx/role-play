@@ -236,6 +236,11 @@ function animateBubbleHeight(previousHeight?: number) {
       if (bubbleRef.value === bubble) {
         bubble.style.height = ''
         bubble.style.overflow = ''
+        requestAnimationFrame(() => {
+          if (bubbleRef.value === bubble) {
+            bubble.scrollHeight
+          }
+        })
       }
     }, 220)
   })
@@ -297,11 +302,16 @@ watch(
 }
 
 .chat-bubble-streaming {
-  transition: height 220ms ease, box-shadow 200ms ease, transform 200ms ease;
+  transition: height 220ms ease-out, box-shadow 200ms ease, transform 200ms ease;
+  min-height: 2.5rem;
 }
 
 .chat-bubble-streaming .chat-bubble-content {
   animation: chat-stream-content 180ms ease-out both;
+}
+
+.chat-bubble-content {
+  min-height: 2.5rem;
 }
 
 @keyframes chat-bubble-enter {
@@ -318,7 +328,7 @@ watch(
 @keyframes chat-stream-content {
   from {
     opacity: 0.72;
-    transform: translateY(4px);
+    transform: translateY(2px);
   }
   to {
     opacity: 1;

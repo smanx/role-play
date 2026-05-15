@@ -46,9 +46,9 @@
         @update:editContent="$emit('update:editContent', $event)"
       />
 
-      <!-- 建议回复区域 -->
+      <!-- 建议回复区域 - 流式输出时不显示 -->
       <Transition name="suggestions-panel">
-        <div v-if="showSuggestions || isGeneratingSuggestions" class="mt-4 flex justify-end">
+        <div v-if="(showSuggestions || isGeneratingSuggestions) && !chatStore.isStreaming" class="mt-4 flex justify-end">
           <div class="w-full max-w-[95%] sm:max-w-[95%] p-2 sm:p-4 rounded-2xl border border-theme-border bubble-assistant overflow-hidden">
             <div class="text-xs font-semibold text-theme-text-secondary mb-2 sm:mb-3 uppercase tracking-wider flex items-center justify-between">
             <div class="flex items-center gap-1.5 sm:gap-2">
@@ -369,6 +369,31 @@ watch(() => chatStore.streamingContent, () => {
     if (scrollTop + clientHeight >= scrollHeight - 20) {
       scrollToBottom()
     }
+  }
+})
+
+// 监听 isStreaming 变化，流式输出结束时强制重绘确保内容完整显示
+watch(() => chatStore.isStreaming, (isStreaming, wasStreaming) => {
+  if (!isStreaming && wasStreaming && messagesContainer.value) {
+    requestAnimationFrame(() => {
+      const container = messagesContainer.value
+      if (!container) return
+      
+      // 强制触发重绘
+      container.style.display = 'none'
+      void container.offsetHeight
+      container.style.display = ''
+      
+      // 确保滚动到底部
+      requestAnimationFrame(() => {
+        if (messagesContainer.value) {
+          messagesContainer.value.scrollTo({
+            top: messagesContainer.value.scrollHeight,
+            behavior: 'smooth'
+          })
+        }
+      })
+    })
   }
 })
 
