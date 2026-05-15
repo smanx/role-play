@@ -101,6 +101,7 @@ const zhCN: LocaleMessages = {
     unknownCharacter: '未知角色',
     replying: '回复中...',
     noDescription: '暂无描述',
+    messages: '条消息',
     selectService: '选择服务',
     selectModel: '选择模型',
     builtinService: '内置模型服务',

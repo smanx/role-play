@@ -101,6 +101,7 @@ const enUS: LocaleMessages = {
     unknownCharacter: 'Unknown Character',
     replying: 'Replying...',
     noDescription: 'No description',
+    messages: 'messages',
     selectService: 'Select Service',
     selectModel: 'Select Model',
     builtinService: 'Built-in Model Service',

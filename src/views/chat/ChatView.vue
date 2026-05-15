@@ -281,6 +281,7 @@
           :is-generating-suggestions="chatStore.isGeneratingSuggestions"
           :auto-fetch-suggestions="autoFetchSuggestions"
           :sidebar-open="sidebarOpen"
+          :total-messages-count="chatStore.totalMessagesCount"
           @submit="handleSubmit"
           @stop="chatStore.abortStream()"
           @fetch-suggestions="fetchSuggestions"

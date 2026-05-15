@@ -6,7 +6,7 @@
           ref="inputRef"
           v-model="inputText"
           type="text"
-          :placeholder="t('chat.inputPlaceholder')"
+          :placeholder="placeholderText"
           class="flex-1 min-w-0 px-3 py-2 sm:px-5 sm:py-3 rounded-2xl border-2 chat-input-field shadow-lg transition-all duration-200"
           :disabled="isStreaming"
           :style="{ visibility: isStreaming ? 'hidden' : 'visible' }"
@@ -67,6 +67,7 @@ const props = defineProps<{
   isGeneratingSuggestions: boolean
   autoFetchSuggestions: boolean
   sidebarOpen?: boolean
+  totalMessagesCount?: number
 }>()
 
 const emit = defineEmits<{
@@ -145,6 +146,11 @@ function handleSuggestionButtonClick() {
     emit('toggleSuggestions')
   }
 }
+
+const placeholderText = computed(() => {
+  const count = props.totalMessagesCount || 0
+  return `${t('chat.inputPlaceholder')} (${count})`
+})
 
 const getSuggestionButtonTitle = computed(() => {
   if (props.isGeneratingSuggestions) {

@@ -239,6 +239,8 @@ const globalDefaultModel = ref('')
 
   const hasMessages = computed(() => messages.value.length > 0)
   
+  const totalMessagesCount = computed(() => getEffectiveMessageCount())
+  
   const isAnonymous = computed(() => userStore.isAnonymous)
   
   const canUseBuiltInModel = computed(() => !userStore.isAnonymous)
@@ -1343,6 +1345,7 @@ const globalDefaultModel = ref('')
     uploadChatSync,
     downloadChatSync,
     loadSyncStatus,
-    cancelChatSync
+    cancelChatSync,
+    totalMessagesCount
   }
 })
