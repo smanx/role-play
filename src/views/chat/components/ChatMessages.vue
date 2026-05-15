@@ -309,8 +309,14 @@ function restoreScrollPosition() {
       if (savedPosition !== undefined) {
         messagesContainer.value.scrollTop = savedPosition
       } else {
-        // 没有保存的位置，滚动到底部显示最新消息
-        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+        // 没有保存的位置
+        if (props.messages.length > 1) {
+          // 有聊天记录，滚动到底部
+          messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+        } else {
+          // 没有聊天记录，明确滚动到顶部
+          messagesContainer.value.scrollTop = 0
+        }
       }
       // 保持抑制状态足够久，确保 messages.length watcher 不会随后覆盖
       setTimeout(() => {
