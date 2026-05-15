@@ -40,8 +40,10 @@ export default defineConfig(({ command, mode }) => {
           short_name: 'RolePlay',
           description: 'Role-Play - Role Play & Chat Application',
           theme_color: '#1f2937',
-          background_color: '#f3f4f6',
+          background_color: '#1f2937',
           display: 'standalone',
+          display_override: ['standalone', 'fullscreen', 'minimal-ui'],
+          orientation: 'portrait',
           start_url: './',
           icons: [
             {
