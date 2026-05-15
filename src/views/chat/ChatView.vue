@@ -715,13 +715,18 @@ const compiledRegexScripts = computed<CompiledRegexScript[]>(() => {
   return compileRegexScripts(globalRegexList, charRegexList, userRegexList)
 })
 
-// 从 localStorage 读取侧边栏状态，如果没有则根据屏幕宽度判断
-const savedSidebarState = localStorage.getItem('sidebarOpen')
-const sidebarOpen = ref(savedSidebarState !== null ? savedSidebarState === 'true' : window.innerWidth >= 1024)
+// 判断是否为PC端
+const isPc = () => window.innerWidth >= 1024
 
-// 监听侧边栏状态变化，保存到 localStorage
+// 从 localStorage 读取侧边栏状态，手机端默认关闭，PC端读取保存的状态
+const savedSidebarState = localStorage.getItem('sidebarOpen')
+const sidebarOpen = ref(isPc() ? (savedSidebarState !== null ? savedSidebarState === 'true' : true) : false)
+
+// 监听侧边栏状态变化，只有PC端才保存到 localStorage
 watch(sidebarOpen, (newValue) => {
-  localStorage.setItem('sidebarOpen', newValue.toString())
+  if (isPc()) {
+    localStorage.setItem('sidebarOpen', newValue.toString())
+  }
 })
 const showMenuDropdown = ref(false)
 const showUserNameDialog = ref(false)
