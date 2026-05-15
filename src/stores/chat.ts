@@ -123,9 +123,21 @@ export const useChatStore = defineStore('chat', () => {
   const displayCount = ref(PAGE_SIZE)
   const isDisplayAll = ref(true)
 
-  const displayOffset = computed(() =>
-    isDisplayAll.value ? 0 : Math.max(0, messages.value.length - displayCount.value)
-  )
+  function getEffectiveMessageCount(): number {
+    let count = messages.value.length
+    
+    const lastMessage = messages.value[messages.value.length - 1]
+    if (lastMessage && lastMessage.role === 'assistant' && !lastMessage.content?.trim()) {
+      count -= 1
+    }
+    
+    return count
+  }
+
+  const displayOffset = computed(() => {
+    if (isDisplayAll.value) return 0
+    return Math.max(0, getEffectiveMessageCount() - displayCount.value)
+  })
 
   const displayedMessages = computed(() =>
     isDisplayAll.value ? messages.value : messages.value.slice(displayOffset.value)
@@ -138,15 +150,15 @@ export const useChatStore = defineStore('chat', () => {
   function loadMoreMessages() {
     if (isDisplayAll.value) return
     displayCount.value += PAGE_SIZE
-    if (displayCount.value >= messages.value.length) {
+    if (displayCount.value >= getEffectiveMessageCount()) {
       isDisplayAll.value = true
-      displayCount.value = messages.value.length
+      displayCount.value = getEffectiveMessageCount()
     }
   }
 
   function resetPagination() {
     displayCount.value = PAGE_SIZE
-    isDisplayAll.value = messages.value.length <= PAGE_SIZE
+    isDisplayAll.value = getEffectiveMessageCount() <= PAGE_SIZE
   }
   const isUpdatingInBackground = ref(false)
   const isUpdatingCharactersList = ref(false)

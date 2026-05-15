@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { dbSet, dbGet } from '@/utils/db'
 import { fetchModelList, testConnection } from '@/utils/llmClient'
 import type { ModelInfo } from '@/utils/llmClient'
@@ -189,6 +189,10 @@ export const useModelConfigStore = defineStore('modelConfig', () => {
   function exportConfigs(): ModelConfig[] {
     return configs.value.map(c => ({ ...c }))
   }
+
+  watch(configs, () => {
+    _save()
+  }, { deep: true })
 
   return {
     configs,

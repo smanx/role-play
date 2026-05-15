@@ -5,7 +5,36 @@
     :class="message.role === 'user' ? 'items-end' : 'items-start'"
   >
     <div
-      v-if="message.role === 'assistant' && isStreaming && isLastMessage && !message.content && !streamingContent"
+      v-if="cotContent"
+      class="cot-wrapper max-w-[95%] sm:max-w-[95%]"
+    >
+      <div
+        class="cot-ui"
+        :class="{ 'is-open': isCotExpanded }"
+      >
+        <button
+          type="button"
+          class="cot-header"
+          @click="toggleCot"
+        >
+          <span class="cot-label">思考过程</span>
+          <span class="cot-length">{{ cotContent.length }} 字</span>
+          <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div
+          class="cot-body"
+          :class="{ 'is-open': isCotExpanded }"
+        >
+          <div class="cot-inner">
+            <div class="cot-content" v-text="cotContent"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      v-if="shouldShowBubble && message.role === 'assistant' && isStreaming && isLastMessage && !message.content && !streamingContent"
       class="max-w-[95%] sm:max-w-[95%] p-0 rounded-2xl bubble-assistant text-theme-text-primary shadow-xl shadow-[var(--theme-shadow-light)] chat-bubble-animated chat-bubble-reply"
     >
       <div class="px-6 py-4 flex items-center justify-center gap-4">
@@ -18,7 +47,7 @@
       </div>
     </div>
     <div
-      v-else
+      v-else-if="shouldShowBubble"
       ref="bubbleRef"
       class="max-w-[95%] sm:max-w-[95%] p-0 rounded-2xl shadow-xl shadow-[var(--theme-shadow-light)] text-base leading-relaxed transition-all duration-200 chat-bubble-animated"
       :class="[
@@ -173,7 +202,7 @@ import { useChatStore } from '@/stores/chat'
 import { useI18n } from '@/composables/useI18n'
 import type { Message } from '@/types'
 import type { CompiledRegexScript } from '@/composables/useChat'
-import { renderMessage } from '@/utils/messageRenderer'
+import { renderMessage, type RenderMessageResult } from '@/utils/messageRenderer'
 
 const props = defineProps<{
   message: Message
@@ -252,7 +281,7 @@ onUnmounted(() => {
   }
 })
 
-const renderedContent = computed(() => {
+const renderResult = computed(() => {
   let content = props.message.content
   if (props.message.role === 'assistant' &&
       props.isStreaming &&
@@ -267,8 +296,32 @@ const renderedContent = computed(() => {
     role,
     userName: chatStore.userName || t('user.user'),
     compiledRegexScripts: props.compiledRegexScripts,
-    isStreaming: props.isStreaming && props.isLastMessage
+    isStreaming: props.isStreaming && props.isLastMessage,
+    includeCot: role === 'assistant'
   })
+})
+
+const renderedContent = computed(() => {
+  const result = renderResult.value
+  return typeof result === 'string' ? result : result.html
+})
+
+const cotContent = computed(() => {
+  const result = renderResult.value
+  return typeof result !== 'string' && result.cot ? result.cot : ''
+})
+
+const isCotExpanded = ref(false)
+
+const toggleCot = () => {
+  isCotExpanded.value = !isCotExpanded.value
+}
+
+const shouldShowBubble = computed(() => {
+  if (props.message.role !== 'assistant') return true
+  if (!props.isStreaming || !props.isLastMessage) return true
+  if (cotContent.value && !renderedContent.value.trim()) return false
+  return true
 })
 
 watch(
@@ -334,5 +387,114 @@ watch(
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.cot-wrapper {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.cot-ui {
+  background-color: var(--theme-bubble-assistant);
+  border: 1px solid var(--theme-bubble-assistant-border);
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.cot-ui.is-open {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.cot-header {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--theme-text-secondary);
+  font-size: 0.875rem;
+  transition: background 0.2s ease;
+}
+
+.cot-header:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.cot-ui.is-open .cot-header {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.cot-label {
+  font-weight: 500;
+}
+
+.cot-length {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-right: 0.5rem;
+}
+
+.cot-header .chevron {
+  width: 1rem;
+  height: 1rem;
+  transition: transform 0.2s ease;
+}
+
+.cot-ui.is-open .chevron {
+  transform: rotate(180deg);
+}
+
+.cot-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.cot-body.is-open {
+  max-height: 400px;
+  padding: 0 0.75rem 0.75rem;
+}
+
+.cot-inner {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.cot-content {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--theme-text-secondary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.cot-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cot-content::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 3px;
+}
+
+.cot-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.cot-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
 }
 </style>

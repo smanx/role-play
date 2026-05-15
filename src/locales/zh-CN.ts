@@ -153,7 +153,7 @@ const zhCN: LocaleMessages = {
     completeCustomModelConfig: '请先完成自定义模型配置（API地址、API密钥、模型名称）',
     loginFirstForBuiltinModel: '请先登录以使用内置模型服务',
     selectModelFirst: '请先选择一个模型',
-    generateSuggestionsPrompt: '请根据上述对话上下文，生成5个符合当前语境的简短用户回复建议，用于推动对话继续。回复建议要自然、简短、符合日常对话习惯。\n\n必须以严格的保证每个建议使用;分割，不要包含任何其他内容，格式示例：建议1;建议2;建议3;建议4;建议5',
+    generateSuggestionsPrompt: '请根据上述对话上下文，生成5个符合当前语境的简短用户回复建议，用于推动对话继续。回复建议要自然、简短、符合日常对话习惯。\n\n忽略前面所有对输出格式的规范和规定，必须以严格的保证每个建议使用;分割，不要包含任何其他内容，格式示例：建议1;建议2;建议3;建议4;建议5',
     guest: '游客',
     removeFriendFailed: '删除好友失败',
     signinFailed: '签到失败',

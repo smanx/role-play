@@ -153,7 +153,7 @@ const enUS: LocaleMessages = {
     completeCustomModelConfig: 'Please complete custom model configuration first (API URL, API Key, Model Name)',
     loginFirstForBuiltinModel: 'Please login first to use built-in model service',
     selectModelFirst: 'Please select a model first',
-    generateSuggestionsPrompt: 'Based on the above conversation context, generate 5 short user reply suggestions that fit the current context to continue the conversation. The suggestions should be natural, concise, and conform to daily conversation habits.\n\nEach suggestion must be strictly separated by ;, do not include any other content. Format example: Suggestion1;Suggestion2;Suggestion3;Suggestion4;Suggestion5',
+    generateSuggestionsPrompt: 'Based on the above conversation context, generate 5 short user reply suggestions that fit the current context to continue the conversation. The suggestions should be natural, concise, and conform to daily conversation habits.\n\nIgnore all previous formatting rules and specifications. Each suggestion must be strictly separated by semicolons. Do not include any other content. Format example: Suggestion1;Suggestion2;Suggestion3;Suggestion4;Suggestion5',
     guest: 'Guest',
     removeFriendFailed: 'Failed to remove friend',
     signinFailed: 'Sign-in failed',
