@@ -1532,15 +1532,24 @@ async function handleSignin() {
 }
 
 let previousIsStreaming = chatStore.isStreaming
+let streamingCharacterId: string | null = null
+
 watch(() => chatStore.isStreaming, (isStreaming) => {
+  if (isStreaming) {
+    streamingCharacterId = chatStore.currentCharacter?.role_play?.id || chatStore.currentCharacter?.id || null
+  }
+  
   if (previousIsStreaming && !isStreaming && autoFetchSuggestions.value) {
     setTimeout(() => {
       if (chatStore.error) return
-      // 如果是手动终止的，不自动获取建议
       if (chatStore.wasManuallyStopped) return
       
+      const currentCharId = chatStore.currentCharacter?.role_play?.id || chatStore.currentCharacter?.id
+      if (streamingCharacterId && currentCharId !== streamingCharacterId) {
+        return
+      }
+      
       const lastMessage = chatStore.messages[chatStore.messages.length - 1]
-      // 只有当最后一条消息是助手消息且内容不为空时，才触发自动建议
       if (!lastMessage || lastMessage.role !== 'assistant') {
         return
       }
