@@ -384,13 +384,17 @@ watch(() => chatStore.isStreaming, (isStreaming, wasStreaming) => {
       void container.offsetHeight
       container.style.display = ''
       
-      // 确保滚动到底部
+      // 只有当用户已经在底部附近时才滚动到底部
+      // 这样当自动触发建议回复时，如果用户正在查看历史消息，不会被强制滚动
       requestAnimationFrame(() => {
         if (messagesContainer.value) {
-          messagesContainer.value.scrollTo({
-            top: messagesContainer.value.scrollHeight,
-            behavior: 'smooth'
-          })
+          const { scrollTop, scrollHeight, clientHeight } = messagesContainer.value
+          if (scrollTop + clientHeight >= scrollHeight - 50) {
+            messagesContainer.value.scrollTo({
+              top: messagesContainer.value.scrollHeight,
+              behavior: 'smooth'
+            })
+          }
         }
       })
     })
