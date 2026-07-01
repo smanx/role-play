@@ -249,12 +249,6 @@ const fetchCharacters = async () => {
     currentPage.value = response.page
     totalPages.value = response.totalPages
     
-    localStorage.setItem('friend_selector_all', JSON.stringify({
-      characters: characters.value,
-      total: total.value,
-      page: currentPage.value,
-      totalPages: totalPages.value
-    }))
   } catch (error) {
     console.error('Failed to fetch characters:', error)
     characters.value = []
