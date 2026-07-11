@@ -120,7 +120,7 @@
         >
           {{ t('common.previousPage') }}
         </button>
-        <span class="text-sm text-theme-text-secondary">
+        <span class="text-sm text-theme-text-secondary whitespace-nowrap">
           {{ currentPage }} / {{ totalPages }}
         </span>
         <button
@@ -130,6 +130,18 @@
         >
           {{ t('common.nextPage') }}
         </button>
+        <div class="flex items-center gap-1">
+          <span class="text-sm text-theme-text-secondary">{{ t('common.goToPage') }}</span>
+          <input
+            v-model.number="goToPageInput"
+            type="number"
+            :min="1"
+            :max="totalPages"
+            class="w-16 px-2 py-1.5 chat-input-field border border-theme-border rounded-lg text-sm text-center focus:ring-2 focus:ring-[var(--theme-primary)] focus:border-transparent"
+            @keyup.enter="handleGoToPage"
+            @blur="handleGoToPage"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -181,6 +193,14 @@ const emit = defineEmits<{
 }>()
 
 const localPageSize = ref(props.pageSize.toString())
+const goToPageInput = ref<number>(props.currentPage)
+
+function handleGoToPage() {
+  const page = goToPageInput.value
+  if (!page || page < 1 || page > props.totalPages || props.isLoading) return
+  goToPageInput.value = page
+  emit('page-change', page)
+}
 
 function handlePageSizeChange(event: Event) {
   const target = event.target as HTMLSelectElement

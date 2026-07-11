@@ -22,6 +22,7 @@ const enUS: LocaleMessages = {
     previous: 'Previous',
     previousPage: 'Previous Page',
     nextPage: 'Next Page',
+    goToPage: 'Go to page',
     submit: 'Submit',
     reset: 'Reset',
     clear: 'Clear',

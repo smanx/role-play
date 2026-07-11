@@ -19,6 +19,7 @@ export interface CommonMessages {
   previous: string
   previousPage: string
   nextPage: string
+  goToPage: string
   submit: string
   reset: string
   clear: string

@@ -22,6 +22,7 @@ const zhCN: LocaleMessages = {
     previous: '上一页',
     previousPage: '上一页',
     nextPage: '下一页',
+    goToPage: '跳转到',
     submit: '提交',
     reset: '重置',
     clear: '清空',
