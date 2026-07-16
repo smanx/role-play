@@ -215,14 +215,15 @@
             <div>
               <label class="block text-sm font-medium text-theme-text-primary mb-2">{{ t('model.model') }}</label>
               <div class="flex flex-col sm:flex-row gap-2">
-                <SearchableSelect
-                  v-if="selectedConfig"
-                  v-model="selectedConfig.default_model"
-                  :options="getModelOptions"
-                  :placeholder="t('model.searchOrSelectModel')"
-                  :disabled="isFetchingModels"
-                  class="flex-1"
-                />
+                  <SearchableSelect
+                    v-if="selectedConfig"
+                    v-model="selectedConfig.default_model"
+                    :options="getModelOptions"
+                    :placeholder="t('model.searchOrSelectModel')"
+                    :disabled="isFetchingModels"
+                    allow-custom-value
+                    class="flex-1"
+                  />
                 <button
                   @click="fetchModelsForSelectedConfig"
                   :disabled="isFetchingModels || !selectedConfig.api_key || !selectedConfig.api_url"

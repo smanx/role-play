@@ -66,6 +66,7 @@ const props = defineProps<{
   options: SearchableSelectOption[]
   placeholder?: string
   disabled?: boolean
+  allowCustomValue?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -103,7 +104,7 @@ watch(searchText, () => {
 // 当 modelValue 变化时，更新显示文本
 watch(() => props.modelValue, (newValue) => {
   const selectedOption = props.options.find(option => option.value === newValue)
-  searchText.value = selectedOption ? selectedOption.label : ''
+  searchText.value = selectedOption ? selectedOption.label : newValue
 }, { immediate: true })
 
 function selectOption(option: SearchableSelectOption) {
@@ -117,6 +118,8 @@ function handleInput() {
   const exactMatch = props.options.find(option => option.value === searchText.value)
   if (exactMatch) {
     emit('update:modelValue', exactMatch.value)
+  } else if (props.allowCustomValue) {
+    emit('update:modelValue', searchText.value)
   }
 }
 
@@ -147,6 +150,9 @@ function handleBlur() {
 
 function clearSearch() {
   searchText.value = ''
+  if (props.allowCustomValue) {
+    emit('update:modelValue', '')
+  }
   if (inputRef.value) {
     inputRef.value.focus()
   }
