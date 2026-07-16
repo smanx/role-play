@@ -398,7 +398,7 @@ const enUS: LocaleMessages = {
     apiUrl: 'API URL',
     apiKey: 'API Key',
     model: 'Model',
-    searchOrSelectModel: 'Search or select a model...',
+    searchOrSelectModel: 'Enter, search, or select a model...',
     fetchModels: 'Fetch Models',
     useThisConfig: 'Use This Config',
     duplicateConfig: 'Duplicate Config',

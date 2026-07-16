@@ -65,11 +65,31 @@ document.addEventListener('touchstart', (e) => {
   touchStartY = e.touches[0].clientY
 }, { passive: true })
 
+function findScrollableElement(target: EventTarget | null): HTMLElement | null {
+  let element = target instanceof Element ? target : null
+
+  while (element) {
+    if (element instanceof HTMLElement) {
+      const overflowY = window.getComputedStyle(element).overflowY
+      const hasScrollableOverflow = (overflowY === 'auto' || overflowY === 'scroll')
+        && element.scrollHeight > element.clientHeight
+
+      if (element.dataset.scrollable === 'true' || hasScrollableOverflow) {
+        return element
+      }
+    }
+
+    element = element.parentElement
+  }
+
+  return null
+}
+
 document.addEventListener('touchmove', (e) => {
   const touchY = e.touches[0].clientY
   const touchDiff = touchY - touchStartY
   
-  const scrollableElement = (e.target as HTMLElement).closest('[data-scrollable="true"]')
+  const scrollableElement = findScrollableElement(e.target)
   
   if (!scrollableElement) {
     if (document.scrollingElement && document.scrollingElement.scrollTop === 0 && touchDiff > 0) {

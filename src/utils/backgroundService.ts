@@ -4,7 +4,10 @@ import { getOrCreateThumbnail, invalidateThumbnail } from './thumbnailService'
 const BACKGROUND_PREFIX = 'background_'
 const BACKGROUND_SETTINGS_KEY = 'backgrounds_settings'
 
+export type BackgroundMode = 'character' | 'custom' | 'none'
+
 export interface BackgroundSettings {
+  backgroundMode: BackgroundMode
   selectedBackground: string | null
   customBackgrounds: string[]
   folders: BackgroundFolder[]
@@ -27,11 +30,20 @@ function getBackgroundKey(name: string): string {
 
 async function loadSettings(): Promise<BackgroundSettings> {
   const data = await dbGet<BackgroundSettings>(BACKGROUND_SETTINGS_KEY)
-  return data || {
+  const defaults: BackgroundSettings = {
+    backgroundMode: 'character',
     selectedBackground: null,
     customBackgrounds: [],
     folders: [],
     imageFolderMap: {},
+  }
+
+  if (!data) return defaults
+
+  return {
+    ...defaults,
+    ...data,
+    backgroundMode: data.backgroundMode || (data.selectedBackground ? 'custom' : 'character'),
   }
 }
 
@@ -86,6 +98,7 @@ async function removeBackground(name: string): Promise<void> {
 
   if (settings.selectedBackground === name) {
     settings.selectedBackground = null
+    settings.backgroundMode = 'character'
   }
 
   await saveSettings(settings)
@@ -130,6 +143,14 @@ async function renameBackground(oldName: string, newName: string): Promise<void>
 async function selectBackground(name: string | null): Promise<void> {
   const settings = await loadSettings()
   settings.selectedBackground = name
+  settings.backgroundMode = name ? 'custom' : 'character'
+  await saveSettings(settings)
+}
+
+async function selectBackgroundMode(mode: Exclude<BackgroundMode, 'custom'>): Promise<void> {
+  const settings = await loadSettings()
+  settings.backgroundMode = mode
+  settings.selectedBackground = null
   await saveSettings(settings)
 }
 
@@ -193,6 +214,7 @@ export {
   removeBackground,
   renameBackground,
   selectBackground,
+  selectBackgroundMode,
   createFolder,
   deleteFolder,
   assignToFolder,

@@ -398,7 +398,7 @@ const zhCN: LocaleMessages = {
     apiUrl: 'API 地址',
     apiKey: 'API Key',
     model: '模型',
-    searchOrSelectModel: '搜索或选择模型...',
+    searchOrSelectModel: '输入、搜索或选择模型...',
     fetchModels: '获取模型',
     useThisConfig: '使用此配置',
     duplicateConfig: '复制配置',
