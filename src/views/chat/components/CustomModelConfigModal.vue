@@ -115,43 +115,52 @@
             />
           </div>
           
-          <div class="flex gap-2">
-            <div class="flex-1">
-              <label class="block text-sm font-medium text-theme-text-primary mb-1.5">模型</label>
-              <div class="relative">
-                <select
-                  :value="config?.default_model || ''"
-                  @change="$emit('updateConfig', 'default_model', ($event.target as HTMLSelectElement).value)"
-                  :disabled="isFetchingModels"
-                  class="w-full px-4 py-2.5 border border-theme-border rounded-xl select-field transition-all pr-12 disabled:opacity-50 disabled:cursor-not-allowed"
+          <div>
+            <div class="flex gap-2 items-end">
+              <div class="flex-1">
+                <label for="custom-model-id" class="block text-sm font-medium text-theme-text-primary mb-1.5">模型 ID</label>
+                <div class="relative">
+                  <input
+                    id="custom-model-id"
+                    type="text"
+                    list="custom-model-options"
+                    :value="config?.default_model || ''"
+                    @input="$emit('updateConfig', 'default_model', ($event.target as HTMLInputElement).value)"
+                    placeholder="例如：gpt-4.1-mini"
+                    autocomplete="off"
+                    spellcheck="false"
+                    class="w-full px-4 py-2.5 border border-theme-border rounded-xl chat-input-field transition-all"
+                  />
+                  <datalist id="custom-model-options">
+                    <option v-for="model in availableModels" :key="model" :value="model" />
+                  </datalist>
+                </div>
+              </div>
+              <div>
+                <button
+                  @click="$emit('fetchModels')"
+                  :disabled="isFetchingModels || !config?.api_key || !config?.api_url"
+                  class="min-h-11 px-4 py-2.5 bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white rounded-xl font-medium shadow-lg shadow-[var(--theme-primary)]/25 hover:shadow-xl hover:shadow-[var(--theme-primary)]/35 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--theme-primary)] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 transition-all duration-200 flex items-center gap-2"
                 >
-                  <option value="">选择模型</option>
-                  <option v-for="model in availableModels" :key="model" :value="model">
-                    {{ model }}
-                  </option>
-                </select>
+                  <svg v-if="isFetchingModels" class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                  </svg>
+                  <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                  </svg>
+                  获取列表
+                </button>
               </div>
             </div>
-            <div class="pt-7">
-              <button
-                @click="$emit('fetchModels')"
-                :disabled="isFetchingModels || !config?.api_key || !config?.api_url"
-                class="px-4 py-2.5 bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white rounded-xl font-medium shadow-lg shadow-[var(--theme-primary)]/25 hover:shadow-xl hover:shadow-[var(--theme-primary)]/35 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2"
-              >
-                <svg v-if="isFetchingModels" class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                </svg>
-                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                </svg>
-                获取
-              </button>
-            </div>
+            <p class="mt-2 text-xs leading-5 text-theme-text-secondary">
+              可直接填写中转站提供的模型 ID；获取列表仅用于提供候选项，不影响手动配置。
+            </p>
           </div>
           
           <div v-if="fetchModelsError" class="p-3 bg-[var(--theme-danger-bg)] border border-[var(--theme-danger)]/30 rounded-xl text-sm text-[var(--theme-danger)]">
-            {{ fetchModelsError }}
+            <p>{{ fetchModelsError }}</p>
+            <p class="mt-1 text-xs opacity-90">仍可在上方直接填写模型 ID 后使用。</p>
           </div>
           
           <div class="p-4 bg-gradient-to-r from-[var(--theme-primary)]/5 to-[var(--theme-secondary)]/5 border border-[var(--theme-primary)]/20 rounded-xl">

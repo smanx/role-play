@@ -126,6 +126,12 @@
                 class="w-full px-3 py-2 text-sm border border-theme-border rounded-xl select-field focus:ring-2 focus:ring-[var(--theme-primary)] focus:border-[var(--theme-primary)]"
               >
                 <option value="">选择模型</option>
+                <option
+                  v-if="chatStore.customModelConfig?.default_model && !availableCustomModels.includes(chatStore.customModelConfig.default_model)"
+                  :value="chatStore.customModelConfig.default_model"
+                >
+                  {{ chatStore.customModelConfig.default_model }}（手动）
+                </option>
                 <option v-for="model in availableCustomModels" :key="model" :value="model">
                   {{ model }}
                 </option>
@@ -202,6 +208,17 @@
                 <div :class="autoFetchSuggestions ? 'absolute right-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow-md transition-all' : 'absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow-md transition-all'"></div>
               </div>
             </div>
+          </button>
+          <button
+            @click.stop="showBackgroundSelector = true; showMenuDropdown = false"
+            class="w-full px-4 py-2.5 text-left text-sm text-theme-text-primary menu-dropdown-item flex items-center gap-3 transition-all"
+          >
+            <div class="w-7 h-7 rounded-lg bg-[var(--theme-secondary)]/10 flex items-center justify-center text-theme-text-accent">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <span>切换聊天背景</span>
           </button>
           <div class="border-t border-theme-border my-1"></div>
           <label class="w-full px-4 py-2.5 text-left text-sm text-theme-text-primary menu-dropdown-item cursor-pointer block flex items-center gap-3 transition-all">
@@ -393,6 +410,14 @@
       v-model:visible="showUserDataSettings"
     />
 
+    <BackgroundSelectorModal
+      v-model:visible="showBackgroundSelector"
+      :current-mode="backgroundMode"
+      :selected-background="selectedBackgroundName"
+      :character-preview-url="characterBackgroundUrl"
+      @background-changed="loadBackground"
+    />
+
     <FriendSelector v-model:visible="showFriendSelector" @view-character="handleViewCharacterWithErrorHandling" />
 
     <ChatSyncModal
@@ -552,6 +577,7 @@ import CharacterModal from './components/CharacterModal.vue'
 import UserSettingsModal from './components/UserSettingsModal.vue'
 import UserDataSettingsModal from './components/UserDataSettingsModal.vue'
 import CustomModelConfigModal from './components/CustomModelConfigModal.vue'
+import BackgroundSelectorModal from './components/BackgroundSelectorModal.vue'
 import ChatSyncModal from './components/ChatSyncModal.vue'
 import FriendSelector from '@/components/FriendSelector.vue'
 import LoginModal from '@/components/LoginModal.vue'
@@ -561,6 +587,12 @@ import { useCharacter } from '@/composables/useCharacter'
 import { useCustomModel } from '@/composables/useCustomModel'
 import { useDialog } from '@/composables/useDialog'
 import { getFriendAvatar, clearCharacterAvatarCache } from '@/utils/localFriendStorage'
+import {
+  getBackgroundUrl,
+  loadSettings as loadBackgroundSettings,
+  selectBackgroundMode,
+  type BackgroundMode,
+} from '@/utils/backgroundService'
 import { config } from '@/utils/config'
 
 const isDev = import.meta.env.DEV
@@ -659,11 +691,17 @@ const errorMessage = ref('')
 const showFriendSelector = ref(false)
 const showUserSettings = ref(false)
 const showUserDataSettings = ref(false)
+const showBackgroundSelector = ref(false)
 const showChatSync = ref(false)
 const showAbout = ref(false)
 const buildTime = __APP_BUILD_TIME__
 const backgroundImageUrl = ref<string | null>(null)
-let currentBgObjectUrl: string | null = null
+const characterBackgroundUrl = ref<string | null>(null)
+const backgroundMode = ref<BackgroundMode>('character')
+const selectedBackgroundName = ref<string | null>(null)
+let currentCharacterBgObjectUrl: string | null = null
+let currentCustomBgObjectUrl: string | null = null
+let backgroundLoadVersion = 0
 const characterLimit = ref<{ currentCount: number; baseLimit: number; bonusSlots: number; totalLikes: number; maxLimit: number } | null>(null)
 
 const {
@@ -1290,6 +1328,7 @@ function handleAvatarUpdated(characterId: string) {
   const currentId = chatStore.currentCharacter?.role_play?.id || chatStore.currentCharacter?.id
   if (currentId === characterId) {
     loadCurrentCharacterAvatar()
+    loadBackground()
   }
 }
 
@@ -1305,48 +1344,60 @@ async function openCharacterInfoFromCurrent() {
 }
 
 async function loadBackground() {
-  if (!chatStore.currentCharacter) {
-    if (currentBgObjectUrl) {
-      URL.revokeObjectURL(currentBgObjectUrl)
-      currentBgObjectUrl = null
-    }
-    backgroundImageUrl.value = null
-    return
-  }
-
-  const characterId = chatStore.currentCharacter.role_play?.id || chatStore.currentCharacter.id
-  if (!characterId) {
-    if (currentBgObjectUrl) {
-      URL.revokeObjectURL(currentBgObjectUrl)
-      currentBgObjectUrl = null
-    }
-    backgroundImageUrl.value = null
-    return
-  }
+  const loadVersion = ++backgroundLoadVersion
+  let nextCharacterUrl: string | null = null
+  let nextCustomUrl: string | null = null
 
   try {
-    const blob = await characterGet(characterId)
-    if (blob && blob.type?.startsWith('image/')) {
-      if (currentBgObjectUrl) {
-        URL.revokeObjectURL(currentBgObjectUrl)
+    const settings = await loadBackgroundSettings()
+    const characterId = chatStore.currentCharacter?.role_play?.id || chatStore.currentCharacter?.id
+
+    if (characterId) {
+      const blob = await characterGet(characterId)
+      if (blob && blob.type?.startsWith('image/')) {
+        nextCharacterUrl = URL.createObjectURL(blob)
       }
-      const url = URL.createObjectURL(blob)
-      currentBgObjectUrl = url
-      backgroundImageUrl.value = url
-    } else {
-      if (currentBgObjectUrl) {
-        URL.revokeObjectURL(currentBgObjectUrl)
-        currentBgObjectUrl = null
+    }
+
+    if (settings.backgroundMode === 'custom' && settings.selectedBackground) {
+      nextCustomUrl = await getBackgroundUrl(settings.selectedBackground)
+    }
+
+    if (loadVersion !== backgroundLoadVersion) {
+      if (nextCharacterUrl) URL.revokeObjectURL(nextCharacterUrl)
+      if (nextCustomUrl) URL.revokeObjectURL(nextCustomUrl)
+      return
+    }
+
+    if (currentCharacterBgObjectUrl) URL.revokeObjectURL(currentCharacterBgObjectUrl)
+    if (currentCustomBgObjectUrl) URL.revokeObjectURL(currentCustomBgObjectUrl)
+
+    currentCharacterBgObjectUrl = nextCharacterUrl
+    currentCustomBgObjectUrl = nextCustomUrl
+    characterBackgroundUrl.value = nextCharacterUrl
+    selectedBackgroundName.value = settings.selectedBackground
+
+    if (settings.backgroundMode === 'custom') {
+      if (nextCustomUrl) {
+        backgroundMode.value = 'custom'
+        backgroundImageUrl.value = nextCustomUrl
+      } else {
+        backgroundMode.value = 'character'
+        selectedBackgroundName.value = null
+        backgroundImageUrl.value = nextCharacterUrl
+        await selectBackgroundMode('character')
       }
+    } else if (settings.backgroundMode === 'none') {
+      backgroundMode.value = 'none'
       backgroundImageUrl.value = null
+    } else {
+      backgroundMode.value = 'character'
+      backgroundImageUrl.value = nextCharacterUrl
     }
   } catch (e) {
-    console.error('Failed to load character background:', e)
-    if (currentBgObjectUrl) {
-      URL.revokeObjectURL(currentBgObjectUrl)
-      currentBgObjectUrl = null
-    }
-    backgroundImageUrl.value = null
+    if (nextCharacterUrl) URL.revokeObjectURL(nextCharacterUrl)
+    if (nextCustomUrl) URL.revokeObjectURL(nextCustomUrl)
+    console.error('Failed to load chat background:', e)
   }
 }
 
@@ -1394,7 +1445,7 @@ watch(() => chatStore.error, (newError) => {
   }
 })
 
-watch(() => chatStore.currentCharacter?.id, () => {
+watch(() => chatStore.currentCharacter?.role_play?.id || chatStore.currentCharacter?.id, () => {
   loadCurrentCharacterAvatar()
   loadBackground()
 })
@@ -1449,10 +1500,11 @@ onMounted(async () => {
 
 onUnmounted(() => {
   showMenuDropdown.value = false
-  if (currentBgObjectUrl) {
-    URL.revokeObjectURL(currentBgObjectUrl)
-    currentBgObjectUrl = null
-  }
+  backgroundLoadVersion++
+  if (currentCharacterBgObjectUrl) URL.revokeObjectURL(currentCharacterBgObjectUrl)
+  if (currentCustomBgObjectUrl) URL.revokeObjectURL(currentCustomBgObjectUrl)
+  currentCharacterBgObjectUrl = null
+  currentCustomBgObjectUrl = null
 })
 
 ;(window as any).triggerSlash = async (text: string) => {
