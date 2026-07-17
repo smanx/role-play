@@ -169,7 +169,7 @@
             </button>
             
             <div 
-              v-if="!editingCharacterMeta.originalId"
+              v-if="config.backendEnabled && !editingCharacterMeta.originalId"
               class="flex items-center gap-2 px-2 py-1.5 sm:px-3 rounded-lg bg-[var(--theme-card-hover)] border border-theme-border"
               :class="{ 'opacity-50': !canToggleShared || isUpdatingShared }"
               @click="handleSharedClick"
@@ -370,6 +370,7 @@ import { useUserStore } from '@/stores/user'
 import { charactersApi } from '@/api'
 import { useDialog } from '@/composables/useDialog'
 import { debugPrintFile, debugPrintBlob } from '@/utils/debugCharacterFile'
+import { config } from '@/utils/config'
 
 const userStore = useUserStore()
 const { showAlert, showConfirm, showErrorAlert } = useDialog()
@@ -577,6 +578,7 @@ function handleUpdateFromServerWithClose() {
 
 const characterTypeLabel = computed(() => {
   if (!props.editingCharacter) return ''
+  if (!config.backendEnabled) return '本地'
   if (props.existsOnServer && !props.isOwnerOfCharacter) return '来自分享'
   if (props.editingCharacterMeta.originalId) return '来自分享'
   if (props.editingCharacterMeta.shared) return '已分享'
@@ -585,6 +587,9 @@ const characterTypeLabel = computed(() => {
 
 const characterTypeClass = computed(() => {
   if (!props.editingCharacter) return ''
+  if (!config.backendEnabled) {
+    return 'bg-[var(--theme-primary)]/10 text-theme-text-accent border border-[var(--theme-primary)]/20'
+  }
   if (props.existsOnServer && !props.isOwnerOfCharacter) {
     return 'bg-[var(--theme-accent)]/10 text-[var(--theme-accent)] border border-[var(--theme-accent)]/20'
   }

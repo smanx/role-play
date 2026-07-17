@@ -242,7 +242,18 @@
             <span>聊天记录导出</span>
           </button>
           <button
-            v-if="!userStore.isAnonymous"
+            @click="handleExportChatAsText"
+            class="w-full px-4 py-2.5 text-left text-sm text-theme-text-primary menu-dropdown-item flex items-center gap-3 transition-all"
+          >
+            <div class="w-7 h-7 rounded-lg bg-[var(--theme-accent)]/10 flex items-center justify-center text-theme-text-accent">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+              </svg>
+            </div>
+            <span>导出纯文本（TXT）</span>
+          </button>
+          <button
+            v-if="backendEnabled && !userStore.isAnonymous"
             @click="showChatSync = true; showMenuDropdown = false"
             class="w-full px-4 py-2.5 text-left text-sm text-theme-text-primary menu-dropdown-item flex items-center gap-3 transition-all"
           >
@@ -344,8 +355,8 @@
 
     <div v-if="showRemoveFriendConfirm" class="fixed inset-0 bg-black/50 backdrop-blur-xl flex items-center justify-center z-[9999] p-4" @click.self="showRemoveFriendConfirm = false">
       <div class="chat-card rounded-2xl p-3 sm:p-6 max-w-md w-full shadow-2xl border border-theme-border">
-        <h3 class="text-base sm:text-lg font-bold text-theme-text-primary mb-1 sm:mb-2">确认删除好友</h3>
-        <p class="text-theme-text-secondary text-sm sm:text-base mb-4 sm:mb-6">确定要删除这位好友吗？删除后聊天记录也会一并删除。</p>
+        <h3 class="text-base sm:text-lg font-bold text-theme-text-primary mb-1 sm:mb-2">确认删除剧本</h3>
+        <p class="text-theme-text-secondary text-sm sm:text-base mb-4 sm:mb-6">确定要删除这个剧本吗？删除后聊天记录也会一并删除。</p>
         <div class="flex gap-3">
           <button
             @click="showRemoveFriendConfirm = false"
@@ -418,9 +429,10 @@
       @background-changed="loadBackground"
     />
 
-    <FriendSelector v-model:visible="showFriendSelector" @view-character="handleViewCharacterWithErrorHandling" />
+    <FriendSelector v-if="backendEnabled" v-model:visible="showFriendSelector" @view-character="handleViewCharacterWithErrorHandling" />
 
     <ChatSyncModal
+      v-if="backendEnabled"
       :show="showChatSync"
       :character-name="chatStore.currentCharacter?.name || ''"
       @close="showChatSync = false"
@@ -480,7 +492,7 @@
           <div class="text-left space-y-2 sm:space-y-3 text-xs sm:text-sm text-theme-text-primary mb-4 sm:mb-6">
             <p>🎭 与各种角色进行沉浸式对话</p>
             <p>✨ 支持自定义角色创建</p>
-            <p>🌐 与好友分享角色</p>
+            <p v-if="backendEnabled">🌐 在线分享剧本</p>
             <p>🎨 支持亮色/暗色主题切换</p>
           </div>
           
@@ -596,6 +608,7 @@ import {
 import { config } from '@/utils/config'
 
 const isDev = import.meta.env.DEV
+const backendEnabled = config.backendEnabled
 const showAuthEntry = config.showAuthEntry
 const devMarkerPosition = ref({ x: window.innerWidth - 50, y: window.innerHeight - 50 })
 let isDragging = false
@@ -971,6 +984,7 @@ function regenerateUserMessage(index: number) {
 }
 
 async function regenerateGreeting() {
+  if (!backendEnabled) return
   if (!chatStore.currentCharacter) return
   
   try {
@@ -1000,6 +1014,14 @@ async function confirmClearHistory() {
 async function handleExportChat() {
   try {
     await chatStore.exportChat()
+  } catch (e: any) {
+    showToast('导出失败: ' + e.message, 'error')
+  }
+}
+
+async function handleExportChatAsText() {
+  try {
+    await chatStore.exportChatAsText()
   } catch (e: any) {
     showToast('导出失败: ' + e.message, 'error')
   }
@@ -1226,6 +1248,7 @@ async function handleOpenUserSettings() {
 }
 
 function handleOpenFriendSelector() {
+  if (!backendEnabled) return
   if (userStore.isAnonymous) {
     userStore.requireLogin()
   } else {
@@ -1298,7 +1321,7 @@ async function handleRemoveFriend() {
     showRemoveFriendConfirm.value = false
   } catch (error) {
     console.error('Failed to remove friend:', error)
-    showToast('删除好友失败', 'error')
+    showToast('删除剧本失败', 'error')
   } finally {
     isRemovingFriend.value = false
   }
@@ -1402,6 +1425,7 @@ async function loadBackground() {
 }
 
 async function handleSignin() {
+  if (!backendEnabled) return
   try {
     await userStore.signin()
   } catch (e: any) {
@@ -1455,7 +1479,7 @@ onMounted(async () => {
   const tokenFromUrl = urlParams.get('token')
   const isNewFromUrl = urlParams.get('is_new') === 'true'
 
-  if (tokenFromUrl) {
+  if (backendEnabled && tokenFromUrl) {
     try {
       await userStore.loginWithToken(tokenFromUrl, isNewFromUrl)
       window.history.replaceState({}, document.title, window.location.pathname)
@@ -1471,12 +1495,16 @@ onMounted(async () => {
     }
   }
 
-  chatStore.loadModels()
+  if (backendEnabled) {
+    chatStore.loadModels()
+  } else {
+    chatStore.setUseCustomModel(true)
+  }
   if (userStore.isLoggedIn()) {
     await userStore.loadFriends()
   }
   
-  if (userStore.isLoggedIn()) {
+  if (backendEnabled && userStore.isLoggedIn()) {
     loadLikedCharacters()
   }
   

@@ -380,6 +380,11 @@ export async function exportChatHistory(characterId: string): Promise<string> {
   return history.map(msg => JSON.stringify(msg)).join('\n')
 }
 
+export async function exportChatHistoryAsText(characterId: string): Promise<string> {
+  const history = await getChatHistory(characterId)
+  return history.map(msg => msg.content).join('\n')
+}
+
 export async function importChatHistory(characterId: string, content: string): Promise<number> {
   const lines = content.split('\n').filter(line => line.trim() !== '')
   const messages: ChatMessage[] = lines.map(line => JSON.parse(line))

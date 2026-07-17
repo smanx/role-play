@@ -114,7 +114,7 @@ router.beforeEach(async (to, from, next) => {
   const urlParams = new URLSearchParams(window.location.search)
   const tokenFromUrl = urlParams.get('token')
   
-  if (tokenFromUrl) {
+  if (config.backendEnabled && tokenFromUrl) {
     try {
       await userStore.loginWithToken(tokenFromUrl)
       // 清除 URL 中的 token 参数

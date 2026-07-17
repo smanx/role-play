@@ -4,6 +4,7 @@ import { setLocalUserName, getLocalUserName } from '@/utils/anonymousUser';
 import { getLocalFriends, addLocalFriend, addOnlineFriendFromBlob, removeLocalFriend, clearFriendsCache, type LocalFriend, sortFriendsByMeta } from '@/utils/localFriendStorage';
 import { userApi, charactersApi } from '@/api';
 import { eventBus } from '@/utils/eventBus';
+import { config } from '@/utils/config';
 
 export interface User {
   id: string;
@@ -18,7 +19,7 @@ export interface User {
 
 export const useUserStore = defineStore('user', () => {
   const user = ref<User | null>(null);
-  const token = ref<string | null>(localStorage.getItem('user_token') || null);
+  const token = ref<string | null>(config.backendEnabled ? localStorage.getItem('user_token') || null : null);
   const isAuthenticating = ref(false);
   const signinMessage = ref('');
   const friendCharacters = ref<LocalFriend[]>([]);
@@ -27,7 +28,7 @@ export const useUserStore = defineStore('user', () => {
   const localUserName = ref<string | null>(null);
   
   if (typeof localStorage !== 'undefined') {
-    const savedUserData = localStorage.getItem('user_data');
+    const savedUserData = config.backendEnabled ? localStorage.getItem('user_data') : null;
     if (savedUserData) {
       try {
         user.value = JSON.parse(savedUserData);
@@ -73,15 +74,15 @@ export const useUserStore = defineStore('user', () => {
   }
 
   const isLoggedIn = () => {
-    return !!token.value && !!user.value;
+    return config.backendEnabled && !!token.value && !!user.value;
   };
   
   const isLoggedInValue = computed(() => {
-    return !!token.value && !!user.value;
+    return config.backendEnabled && !!token.value && !!user.value;
   });
 
   const isAnonymous = computed(() => {
-    return !token.value || !user.value;
+    return !config.backendEnabled || !token.value || !user.value;
   });
 
   const hasQuota = () => {
@@ -102,6 +103,7 @@ export const useUserStore = defineStore('user', () => {
   });
 
   const setToken = (newToken: string | null) => {
+    if (!config.backendEnabled && newToken) return;
     token.value = newToken;
     if (newToken) {
       localStorage.setItem('user_token', newToken);
@@ -111,6 +113,7 @@ export const useUserStore = defineStore('user', () => {
   };
 
   const setUser = (newUser: User | null) => {
+    if (!config.backendEnabled && newUser) return;
     user.value = newUser;
     if (newUser) {
       localStorage.setItem('user_data', JSON.stringify(newUser));
@@ -124,6 +127,10 @@ export const useUserStore = defineStore('user', () => {
   };
 
   const loginWithToken = async (newToken: string, isNewUser: boolean = false) => {
+    if (!config.backendEnabled) {
+      throw new Error('纯前端模式不支持登录');
+    }
+
     try {
       isAuthenticating.value = true;
       setToken(newToken);
@@ -146,6 +153,10 @@ export const useUserStore = defineStore('user', () => {
   };
 
   const verify = async () => {
+    if (!config.backendEnabled) {
+      return { user: null };
+    }
+
     if (!token.value) {
       return { user: null };
     }
@@ -187,6 +198,7 @@ export const useUserStore = defineStore('user', () => {
   };
 
   const requireLogin = () => {
+    if (!config.backendEnabled) return;
     showLoginModal.value = true;
   };
 
@@ -195,6 +207,10 @@ export const useUserStore = defineStore('user', () => {
   };
 
   const signin = async () => {
+    if (!config.backendEnabled) {
+      throw new Error('纯前端模式不支持签到');
+    }
+
     try {
       const result = await userApi.signin();
       setUser(result.user);

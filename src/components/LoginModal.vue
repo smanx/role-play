@@ -46,6 +46,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { config } from '@/utils/config'
 
 const props = defineProps<{
   visible: boolean
@@ -65,6 +66,7 @@ const handleClose = () => {
 }
 
 const redirectToGitHub = () => {
+  if (!config.backendEnabled) return
   isLoading.value = true
   const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
   window.location.href = apiBaseUrl ? `${apiBaseUrl}/auth/github` : '/api/auth/github'

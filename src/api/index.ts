@@ -2,6 +2,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api'
 import { eventBus } from '@/utils/eventBus'
 import { compressBody } from '@/utils/gzipRequest'
 import { debugPrintFile } from '@/utils/debugCharacterFile'
+import { assertBackendEnabled } from '@/utils/backendMode'
 
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
@@ -12,6 +13,7 @@ interface RequestOptions {
 
 function createRequest(tokenSource: 'user-only' | 'user-first' | 'admin-only') {
   return async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+    assertBackendEnabled()
     const { method = 'GET', body, headers = {}, params } = options
 
     let token
@@ -133,6 +135,7 @@ export const api = {
   put: <T>(path: string, body: any) => request<T>(path, { method: 'PUT', body }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
   getRaw: async (path: string, params?: Record<string, string>): Promise<{ blob: Blob; contentType: string }> => {
+    assertBackendEnabled()
     let token = localStorage.getItem('user_token')
     if (!token) {
       token = localStorage.getItem('admin_token')
@@ -708,6 +711,7 @@ export const adminApi = {
     },
     signal?: AbortSignal
   ): AsyncGenerator<{ content: string; accumulated?: string; error?: string; partialResult?: boolean }> {
+    assertBackendEnabled()
     const token = localStorage.getItem('admin_token')
     const url = `${API_BASE}/admin/characters/optimize`
     
@@ -926,6 +930,7 @@ export const v1Api = {
     options: V1ChatCompletionOptions,
     signal?: AbortSignal
   ): AsyncGenerator<string> {
+    assertBackendEnabled()
     let token = localStorage.getItem('user_token')
     const url = `${API_BASE}/v1/chat/completions`
     const requestBody = {
@@ -1027,6 +1032,7 @@ export const v1Api = {
   },
 
   chatCompletion: async (options: V1ChatCompletionOptions): Promise<string> => {
+    assertBackendEnabled()
     let token = localStorage.getItem('user_token')
     const url = `${API_BASE}/v1/chat/completions`
     const requestBody = {

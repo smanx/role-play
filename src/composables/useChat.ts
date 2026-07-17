@@ -5,6 +5,7 @@ import { useUserDataStore } from '@/stores/userData'
 import { useDialog } from '@/composables/useDialog'
 import { compileRegexScripts } from '@/utils/regexUtils'
 import { renderMessage } from '@/utils/messageRenderer'
+import { config } from '@/utils/config'
 
 export interface CompiledRegexScript {
   regex: RegExp
@@ -134,6 +135,7 @@ export function useChat(globalRegex: any[] = []) {
   }
 
   async function regenerateGreeting() {
+    if (!config.backendEnabled) return
     if (!chatStore.currentCharacter) return
     
     try {
@@ -178,6 +180,7 @@ export function useChat(globalRegex: any[] = []) {
   }
 
   async function fetchSuggestions(options: { autoShow?: boolean, force?: boolean } = {}) {
+    if (!config.backendEnabled) return
     if (isGeneratingSuggestions.value) return
     
     const { autoShow = true, force = false } = options

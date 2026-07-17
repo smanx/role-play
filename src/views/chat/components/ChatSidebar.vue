@@ -45,7 +45,7 @@
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
-              好友列表
+              剧本列表
             </button>
             <div v-if="userStore.isLoadingFriends" class="w-3 h-3">
               <div class="w-3 h-3 border-2 border-[var(--theme-primary)] border-t-transparent rounded-full animate-spin"></div>
@@ -141,7 +141,7 @@
             <svg class="w-8 h-8 mx-auto mb-2 text-theme-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
-            暂无好友，点击上方按钮添加
+            暂无剧本，点击上方按钮添加
           </div>
         </div>
       </div>
@@ -209,7 +209,7 @@
             </template>
           </div>
           <div class="text-xs text-theme-text-secondary">
-            未登录
+            {{ backendEnabled ? '未登录' : '本地模式' }}
           </div>
         </div>
         <button
@@ -276,6 +276,7 @@ const chatStore = useChatStore()
 const userStore = useUserStore()
 const avatarMap = ref(new Map<string, string>())
 const showAuthEntry = config.showAuthEntry
+const backendEnabled = config.backendEnabled
 const currentColorMode = ref<ColorMode>(getColorMode())
 const localFriendCharacters = ref<any[]>([])
 

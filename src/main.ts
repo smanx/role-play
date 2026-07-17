@@ -5,6 +5,9 @@ import App from './App.vue'
 import './style.css'
 import { loadTheme } from './utils/theme'
 import { migrateFromLocalStorage } from './utils/storageService'
+import { installBackendRequestGuard } from './utils/backendMode'
+
+installBackendRequestGuard()
 
 function setViewportHeight() {
   const vh = window.innerHeight * 0.01

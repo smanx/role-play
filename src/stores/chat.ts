@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, shallowRef } from 'vue'
 import type { Character, Message, CustomModelConfig, SyncStatus } from '@/types'
-import { getChatHistory, saveChatHistory, clearChatHistory, exportChatHistory, importChatHistory } from '@/utils/db'
+import { getChatHistory, saveChatHistory, clearChatHistory, exportChatHistory, exportChatHistoryAsText, importChatHistory } from '@/utils/db'
 import { useUserStore } from './user'
 import { useUserDataStore } from './userData'
 import { buildContext } from '@/utils/contextBuilder'
@@ -9,6 +9,7 @@ import { streamChat } from '@/utils/llmClient'
 import { getLocalFriends, isLocalFriend, getLocalFriend, pinFriendToTop } from '@/utils/localFriendStorage'
 import { modelsApi, v1Api, chatSyncApi } from '@/api'
 import { generateId } from '@/utils/uuid'
+import { config } from '@/utils/config'
 
 function useCustomModelConfig(): CustomModelConfig {
   try {
@@ -167,11 +168,16 @@ try {
   uniqueModels.value = []
 }
 
+if (!config.backendEnabled) {
+  uniqueModels.value = []
+  localStorage.removeItem('role_play_unique_models')
+}
+
 const globalDefaultModel = ref('')
   const selectedModel = ref(localStorage.getItem('role_play_selected_model') || '')
   const lastSelectedModel = ref('')
   
-  const useCustomModel = ref(localStorage.getItem('role_play_use_custom_model') === 'true')
+  const useCustomModel = ref(!config.backendEnabled || localStorage.getItem('role_play_use_custom_model') === 'true')
   const customModelConfig = ref<CustomModelConfig | null>(null)
   
   try {
@@ -226,7 +232,7 @@ const globalDefaultModel = ref('')
   
   const isAnonymous = computed(() => userStore.isAnonymous)
   
-  const canUseBuiltInModel = computed(() => !userStore.isAnonymous)
+  const canUseBuiltInModel = computed(() => config.backendEnabled && !userStore.isAnonymous)
   
   const mustUseCustomModel = computed(() => userStore.isAnonymous && !useCustomModel.value)
 
@@ -237,8 +243,9 @@ const globalDefaultModel = ref('')
   }
 
   function setUseCustomModel(use: boolean) {
-    useCustomModel.value = use
-    localStorage.setItem('role_play_use_custom_model', use.toString())
+    const nextValue = config.backendEnabled ? use : true
+    useCustomModel.value = nextValue
+    localStorage.setItem('role_play_use_custom_model', nextValue.toString())
   }
 
   function setCustomModelConfig(config: CustomModelConfig | null) {
@@ -513,9 +520,10 @@ const globalDefaultModel = ref('')
   }
 
   async function loadModels(forceRefresh = false) {
-    if (userStore.isAnonymous) {
+    if (!config.backendEnabled || userStore.isAnonymous) {
       uniqueModels.value = []
       globalDefaultModel.value = ''
+      localStorage.removeItem('role_play_unique_models')
       return
     }
     
@@ -1087,16 +1095,27 @@ const globalDefaultModel = ref('')
     }
   }
 
-  async function exportChat() {
+  function downloadChatFile(content: string, extension: 'jsonl' | 'txt', type: string) {
     if (!currentCharacter.value) return
-    const content = await exportChatHistory(currentCharacter.value.id)
-    const blob = new Blob([content], { type: 'application/jsonl' })
+    const blob = new Blob([content], { type })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${currentCharacter.value.name}_chat.jsonl`
+    a.download = `${currentCharacter.value.name}_chat.${extension}`
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  async function exportChat() {
+    if (!currentCharacter.value) return
+    const content = await exportChatHistory(currentCharacter.value.id)
+    downloadChatFile(content, 'jsonl', 'application/jsonl')
+  }
+
+  async function exportChatAsText() {
+    if (!currentCharacter.value) return
+    const content = await exportChatHistoryAsText(currentCharacter.value.id)
+    downloadChatFile(content, 'txt', 'text/plain;charset=utf-8')
   }
 
   async function importChat(file: File) {
@@ -1114,6 +1133,10 @@ const globalDefaultModel = ref('')
   const syncError = ref<string | null>(null)
 
   async function uploadChatSync() {
+    if (!config.backendEnabled) {
+      throw new Error('纯前端模式不支持聊天同步')
+    }
+
     if (!currentCharacter.value) {
       throw new Error('请先选择角色')
     }
@@ -1145,6 +1168,10 @@ const globalDefaultModel = ref('')
   }
 
   async function downloadChatSync(syncCode: string) {
+    if (!config.backendEnabled) {
+      throw new Error('纯前端模式不支持聊天同步')
+    }
+
     if (userStore.isAnonymous) {
       throw new Error('请先登录后再使用同步功能')
     }
@@ -1176,7 +1203,7 @@ const globalDefaultModel = ref('')
   }
 
   async function loadSyncStatus() {
-    if (userStore.isAnonymous) {
+    if (!config.backendEnabled || userStore.isAnonymous) {
       syncStatus.value = null
       return
     }
@@ -1194,6 +1221,10 @@ const globalDefaultModel = ref('')
   }
 
   async function cancelChatSync() {
+    if (!config.backendEnabled) {
+      throw new Error('纯前端模式不支持聊天同步')
+    }
+
     if (!currentCharacter.value?.id) {
       throw new Error('请先选择角色')
     }
@@ -1281,6 +1312,7 @@ const globalDefaultModel = ref('')
     clearHistory,
     clearCharacterHistory,
     exportChat,
+    exportChatAsText,
     importChat,
     syncStatus,
     isSyncing,

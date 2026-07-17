@@ -68,6 +68,7 @@
         </svg>
       </button>
       <button
+        v-if="config.backendEnabled"
         @click.stop="$emit('regenerate-greeting')"
         class="p-2 sm:p-1 action-icon"
         title="重新生成"
@@ -173,6 +174,7 @@ import { useChatStore } from '@/stores/chat'
 import type { Message } from '@/types'
 import type { CompiledRegexScript } from '@/composables/useChat'
 import { renderMessage } from '@/utils/messageRenderer'
+import { config } from '@/utils/config'
 
 const props = defineProps<{
   message: Message

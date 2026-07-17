@@ -139,6 +139,8 @@
 import { ref } from 'vue'
 import type { Character } from '@/types'
 import AvatarImage from './AvatarImage.vue'
+import { config } from '@/utils/config'
+import { isBackendRequestUrl } from '@/utils/backendMode'
 
 interface Props {
   characters: Character[]
@@ -195,6 +197,11 @@ function getCharacterName(character: Character): string {
 }
 
 function getCharacterAvatar(character: Character): string | undefined {
+  if (!config.backendEnabled) {
+    const localAvatar = character.data?.avatar || character.avatar
+    if (!localAvatar || isBackendRequestUrl(localAvatar)) return undefined
+    return localAvatar
+  }
   if (character.thumbnailUrl) {
     return character.thumbnailUrl
   }

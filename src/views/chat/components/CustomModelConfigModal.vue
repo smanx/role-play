@@ -170,7 +170,7 @@
               </svg>
               <span class="font-medium text-sm">提示</span>
             </div>
-            <p class="text-sm text-theme-text-secondary">登录后可领取免费的对话额度，使用自定义模型不会扣除您的对话额度，大模型配置信息仅保存到您的浏览器本地，请放心使用</p>
+            <p class="text-sm text-theme-text-secondary">模型地址、API Key 和模型名称仅保存在当前浏览器中。多人访问同一站点时，请每位用户配置自己的 Key，并定期导出本地数据备份。</p>
           </div>
         </div>
       </div>
